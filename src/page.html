@@ -181,6 +181,11 @@ footer p{margin:0 0 10px}
         <pre id="theme-snippet"></pre>
         <button class="btn quiet" type="button" data-copy="theme-snippet">Copy</button>
       </div>
+      <div class="block" id="ai-block">
+        <p>Using an AI coding assistant? Paste this prompt into it, in your project, and it adds the badge for you.</p>
+        <pre id="ai-prompt"></pre>
+        <button class="btn quiet" type="button" data-copy="ai-prompt">Copy</button>
+      </div>
     </div>
     <p class="small soft" style="margin-top:22px">For a PDF, video or app store page, <a id="download" href="/badge.svg?download=1" download="made-openly.svg">download the plain badge</a>. It has no tracking and is never counted.</p>
   </div>
@@ -306,6 +311,37 @@ picker.addEventListener("change", updatePreview);
 updatePreview();
 
 // Theme swap: switch between the light and dark version when the page theme changes.
+// A prompt for an AI coding assistant (Claude Code and the like) that adds the badge
+// to the project it is run in. Posts on Substack or Medium have no repo, so none.
+function aiPrompt(data, theme) {
+  const keep = "Keep the token, the URLs, width, height and alt text exactly as given. Do not download the image: it must load from madeopenly.com, which is how it counts.";
+  if (data.place_kind === "repo")
+    return `Add the Made Openly badge to this repository's README. Change nothing else.
+
+Put this HTML on its own line near the top of README.md, under the title. GitHub renders it as is:
+
+${data.snippet}
+
+${keep}
+Show me the diff before you commit.`;
+  return `Add the Made Openly badge to this ${data.place_kind === "product" ? "product's website or about page" : "website"}. Change nothing else.
+
+1. Find the shared footer (the layout or template every page uses). Add the badge there once, not per page.
+2. Use this HTML:
+
+${data.snippet}
+
+3. If the site switches between light and dark themes with a data-theme attribute or a "dark" class on <html>, use this version instead. It swaps the badge with the theme:
+
+${theme}
+
+4. In JSX or another template language, convert the markup to that syntax (class to className, inline script to an effect), keeping every value.
+5. If the site sends a Content-Security-Policy, allow https://madeopenly.com in img-src.
+6. ${keep}
+
+Show me the diff before you commit.`;
+}
+
 function themeSnippet(snippet, s) {
   const clear = s.style.startsWith("clear-");
   const light = clear ? "clear-light" : "light", dark = clear ? "clear-dark" : "dark";
@@ -356,7 +392,10 @@ picker.addEventListener("submit", async (e) => {
   tsReset("generate");
   if (!ok) { err.textContent = data.error || "Something went wrong. Please try again."; return; }
   $("snippet").textContent = data.snippet;
-  $("theme-snippet").textContent = themeSnippet(data.snippet, s);
+  const theme = themeSnippet(data.snippet, s);
+  $("theme-snippet").textContent = theme;
+  $("ai-block").hidden = data.place_kind === "post";
+  $("ai-prompt").textContent = aiPrompt(data, theme);
   $("result").classList.add("show");
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 });
