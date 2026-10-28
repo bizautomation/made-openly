@@ -1,6 +1,7 @@
 import { badge, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
 import { TOKEN_PATH, handleLiveBadge } from "./live.js";
+import { runWeeklyCheck } from "./verify.js";
 
 const SVG_TYPE = "image/svg+xml";
 
@@ -45,5 +46,10 @@ export default {
     if (live) return handleLiveBadge(request, env, live[1], url);
 
     return new Response("Not found", { status: 404 });
+  },
+
+  async scheduled(controller, env, ctx) {
+    const summary = await runWeeklyCheck(env);
+    console.log("weekly check", JSON.stringify(summary)); // counts only
   },
 };
