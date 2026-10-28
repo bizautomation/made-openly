@@ -216,7 +216,17 @@ CREATE TABLE messages (
   body       TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE weekly_counts (               -- anonymous snapshot, written by the weekly check
+  week     TEXT NOT NULL,                  -- ISO week, e.g. 2026-W45
+  label    TEXT NOT NULL,
+  kind     TEXT NOT NULL,
+  verified INTEGER NOT NULL,               -- verified places with this label and kind that week
+  PRIMARY KEY (week, label, kind)
+);
 ```
+
+`weekly_counts` holds counts only, never a token or host, so removing a badge still deletes all of its data while past weeks of the growth line stay correct.
 
 No IP address, user agent or visitor identifier is stored anywhere.
 
@@ -250,7 +260,7 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 ### 8.2 `GET /b/:token.svg` (the hot path)
 
 1. Look up the token. Unknown token: return a neutral "Made Openly" badge, record nothing.
-2. Draw the SVG from the stored settings (query params are only hints for caching; stored settings win).
+2. Draw the SVG. The label always comes from storage, since it is what the counter counts. The look comes from the query string: `s` style, `z` size, `v` variant, so a site can swap themes without a new token. A missing or invalid value falls back to the stored setting. (Decided by the owner, 29 Oct 2026.)
 3. Read the `Referer` header. Take its host. Ignore and do not bind if it is missing, `localhost`, an IP address, or a known preview host (`*.pages.dev`, `*.vercel.app`, `*.netlify.app` previews, `127.0.0.1`, etc.).
 4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `status='bound'`, `verify_method='live'`).
 5. If the token is bound to host A and the referrer is host B: record nothing, and set `status='flagged'` (someone copied another site's snippet).
@@ -296,6 +306,8 @@ Limits are keyed by IP using Cloudflare's rate limiting. The IP is held in memor
 | `/api/contact` | Turnstile + per-IP | 3 per hour |
 | `/api/list`, `/api/report` | per-IP | 10 per hour |
 
+The Workers rate-limit binding only counts over 10 or 60 seconds, so the Worker enforces per-minute limits (Generate 5, contact 1, list/report 3 per minute per IP, badge 300) and the longer windows above are zone WAF rate-limiting rules. Decided by the owner, 28 Oct 2026.
+
 Cleanup: tokens never bound or declared within 30 days are deleted by the weekly job.
 
 ---
@@ -320,6 +332,8 @@ A **verified place**: one token, found at its place by the weekly check. Each pl
   "listed": [ { "place": "example.com", "label": "human-ai", "kind": "site", "since": "2026-11-02" } ]
 }
 ```
+
+`weekly` comes from `weekly_counts` (one snapshot per weekly run), not from the current `badges` rows.
 
 Optional: `/stats.json?since=YYYY-MM-DD` returns only places first verified since that date. This endpoint is how a scheduled assistant reads the numbers for the weekly marketing report, and it powers the on-page counter.
 
@@ -383,8 +397,9 @@ Only the public **named list** is moderated. The **counts are never moderated**:
 1. Listing is opt-in and off by default (`listed='no'`).
 2. Only places with `status='verified'` can ask to be listed (`POST /api/list`) → `listed='pending'`.
 3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`.
-4. Every listed place shows a small **Report** link → `listed='reported'`, hidden until the owner reviews it.
+4. Every listed place shows a small **Report** link → `listed='reported'`, hidden until the owner reviews it. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
 5. A removed place keeps counting; it is only hidden from the list.
+6. Review links are signed (HMAC-SHA256 with the `ADMIN_SIGNING_KEY` secret) and expire after 14 days. A link only acts while the place is still in the state it was sent for. Mail goes through Resend from `we@madeopenly.com` to the owner only (`ADMIN_EMAIL` secret). Decided by the owner, 29 Oct 2026.
 
 ---
 
