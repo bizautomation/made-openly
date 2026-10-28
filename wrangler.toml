@@ -9,6 +9,7 @@ directory = "./public"
 
 [vars]
 TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put
+MAIL_FROM = "Made Openly <we@madeopenly.com>" # Resend sender. RESEND_API_KEY, ADMIN_EMAIL and ADMIN_SIGNING_KEY are secrets
 
 [[d1_databases]]
 binding = "DB"

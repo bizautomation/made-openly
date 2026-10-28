@@ -397,8 +397,9 @@ Only the public **named list** is moderated. The **counts are never moderated**:
 1. Listing is opt-in and off by default (`listed='no'`).
 2. Only places with `status='verified'` can ask to be listed (`POST /api/list`) → `listed='pending'`.
 3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`.
-4. Every listed place shows a small **Report** link → `listed='reported'`, hidden until the owner reviews it.
+4. Every listed place shows a small **Report** link → `listed='reported'`, hidden until the owner reviews it. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
 5. A removed place keeps counting; it is only hidden from the list.
+6. Review links are signed (HMAC-SHA256 with the `ADMIN_SIGNING_KEY` secret) and expire after 14 days. A link only acts while the place is still in the state it was sent for. Mail goes through Resend from `we@madeopenly.com` to the owner only (`ADMIN_EMAIL` secret). Decided by the owner, 29 Oct 2026.
 
 ---
 
