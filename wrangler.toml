@@ -2,6 +2,9 @@ name = "madeopenly"
 main = "src/index.js"
 compatibility_date = "2026-10-28"
 
+[vars]
+TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put
+
 [[d1_databases]]
 binding = "DB"
 database_name = "madeopenly"
