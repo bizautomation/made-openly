@@ -1,6 +1,7 @@
 import { badge, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
 import { TOKEN_PATH, handleLiveBadge } from "./live.js";
+import { handleStats } from "./stats.js";
 import { runWeeklyCheck } from "./verify.js";
 
 const SVG_TYPE = "image/svg+xml";
@@ -42,6 +43,7 @@ export default {
 
     if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
     if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
+    if (method === "GET" && pathname === "/stats.json") return handleStats(request, env, ctx, url);
     const live = method === "GET" && TOKEN_PATH.exec(pathname);
     if (live) return handleLiveBadge(request, env, live[1], url);
 

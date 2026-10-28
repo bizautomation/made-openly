@@ -16,6 +16,7 @@ export default defineConfig({
                 TEST_MIGRATIONS: await readD1Migrations("./migrations"),
                 // Tests mock siteverify; this never reaches Cloudflare.
                 TURNSTILE_SECRET: "test-secret",
+                STATS_CACHE: "off",
               },
             },
           })),
