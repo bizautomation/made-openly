@@ -4,6 +4,7 @@ import { TOKEN_PATH, handleLiveBadge } from "./live.js";
 import { handleStats } from "./stats.js";
 import { runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
+import { handleList, handleReport, handleReview, sendReviewEmail } from "./moderation.js";
 import pageHtml from "./page.html";
 import registry from "../mascots/registry.json";
 
@@ -77,7 +78,10 @@ export default {
 
     if (method === "GET" && pathname === "/") return page(env);
     if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
-    if (method === "POST" && pathname === "/api/contact") return handleContact(request, env);
+    if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
+    if (method === "POST" && pathname === "/api/list") return handleList(request, env);
+    if (method === "POST" && pathname === "/api/report") return handleReport(request, env, ctx);
+    if (method === "GET" && pathname === "/admin/review") return handleReview(env, ctx, url);
     if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
     if (method === "GET" && pathname === "/stats.json") return handleStats(request, env, ctx, url);
     const live = method === "GET" && TOKEN_PATH.exec(pathname);
@@ -88,6 +92,7 @@ export default {
 
   async scheduled(controller, env, ctx) {
     const summary = await runWeeklyCheck(env);
+    summary.to_review = await sendReviewEmail(env);
     console.log("weekly check", JSON.stringify(summary)); // counts only
   },
 };

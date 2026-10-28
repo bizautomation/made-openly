@@ -28,7 +28,8 @@ describe("plain badge download", () => {
 });
 
 describe("POST /api/contact", () => {
-  beforeEach(() => mockFetch());
+  let fetchMock;
+  beforeEach(() => (fetchMock = mockFetch((url) => (url === "https://api.resend.com/emails" ? Response.json({ id: "m1" }) : new Response("", { status: 404 })))));
   afterEach(() => vi.unstubAllGlobals());
   const msg = { name: "Ann", email: "ann@example.com", body: "Hello", turnstile_token: "pass" };
 
@@ -38,6 +39,20 @@ describe("POST /api/contact", () => {
     const row = await env.DB.prepare("SELECT * FROM messages ORDER BY id DESC").first();
     expect(row).toMatchObject({ name: "Ann", email: "ann@example.com", body: "Hello" });
     expect(Object.keys(row).sort()).toEqual(["body", "created_at", "email", "id", "name"]);
+  });
+
+  it("forwards the message to the owner, reply-to the sender", async () => {
+    await postJson("/api/contact", msg);
+    await vi.waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u) === "https://api.resend.com/emails")).toBe(true));
+    const [, init] = fetchMock.mock.calls.find(([u]) => String(u) === "https://api.resend.com/emails");
+    expect(init.headers.Authorization).toBe("Bearer test-resend-key");
+    expect(JSON.parse(init.body)).toEqual({
+      from: "Made Openly <we@madeopenly.com>",
+      to: ["owner@example.com"],
+      subject: "Made Openly contact from Ann",
+      text: "Ann <ann@example.com>\n\nHello",
+      reply_to: "ann@example.com",
+    });
   });
 
   it("rejects a failed Turnstile check", async () => {

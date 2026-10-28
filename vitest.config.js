@@ -17,6 +17,10 @@ export default defineConfig({
                 // Tests mock siteverify; this never reaches Cloudflare.
                 TURNSTILE_SECRET: "test-secret",
                 STATS_CACHE: "off",
+                // Test-only values; tests mock Resend, so nothing is sent.
+                RESEND_API_KEY: "test-resend-key",
+                ADMIN_EMAIL: "owner@example.com",
+                ADMIN_SIGNING_KEY: "test-signing-key",
               },
             },
           })),

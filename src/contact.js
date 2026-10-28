@@ -1,9 +1,10 @@
 import { verifyTurnstile, withinLimit } from "./generate.js";
+import { sendMail } from "./mail.js";
 
 const LIMITS = { name: 100, email: 254, body: 5000 };
 
-// POST /api/contact: saved to `messages`. Forwarding by email is added with moderation (SPEC.md 12).
-export async function handleContact(request, env) {
+// POST /api/contact: saved to `messages` and forwarded to the owner, reply-to the sender.
+export async function handleContact(request, env, ctx) {
   let input;
   try {
     input = await request.json();
@@ -28,5 +29,12 @@ export async function handleContact(request, env) {
   await env.DB.prepare("INSERT INTO messages (name, email, body, created_at) VALUES (?, ?, ?, ?)")
     .bind(name || null, email, body, new Date().toISOString())
     .run();
+  ctx.waitUntil(
+    sendMail(env, {
+      subject: `Made Openly contact${name ? ` from ${name.replace(/[\r\n]+/g, " ")}` : ""}`,
+      text: `${name || "(no name)"} <${email}>\n\n${body}`,
+      replyTo: email,
+    }),
+  );
   return Response.json({ ok: true }, { status: 201 });
 }
