@@ -21,13 +21,31 @@ const row = (token) => env.DB.prepare("SELECT * FROM badges WHERE token = ?").bi
 const days = async (token) => (await env.DB.prepare("SELECT COUNT(*) AS n FROM daily WHERE token = ?").bind(token).first()).n;
 
 describe("GET /b/:token.svg", () => {
-  it("draws from stored settings, not query hints, with a 5-minute cache", async () => {
+  it("draws from stored settings when the URL has none, with a 5-minute cache", async () => {
     const token = await seed();
-    const res = await load(token, "https://example.com/post", "?l=human-only&s=light&z=large&v=wordmark");
+    const res = await load(token, "https://example.com/post");
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("image/svg+xml");
     expect(res.headers.get("Cache-Control")).toBe("public, max-age=300");
     expect(await res.text()).toBe(badge("small", "dark", "mostly-ai", "robot"));
+  });
+
+  it("takes the look from the URL but never the label", async () => {
+    const token = await seed();
+    const res = await load(token, "https://example.com/post", "?l=human-only&s=light&z=large&v=wordmark");
+    expect(await res.text()).toBe(badge("large", "light", "mostly-ai", "wordmark"));
+  });
+
+  it("swaps only the style when only s= changes", async () => {
+    const token = await seed();
+    const res = await load(token, "https://example.com/post", "?s=clear-light");
+    expect(await res.text()).toBe(badge("small", "clear-light", "mostly-ai", "robot"));
+  });
+
+  it("falls back per value when the URL has an invalid one", async () => {
+    const token = await seed();
+    const res = await load(token, "https://example.com/post", "?s=neon&z=large");
+    expect(await res.text()).toBe(badge("large", "dark", "mostly-ai", "robot"));
   });
 
   it("binds on the first valid referrer and records the day", async () => {

@@ -51,8 +51,11 @@ export async function handleLiveBadge(request, env, token, url) {
     return svg(neutralBadge(hint?.size, hint?.style));
   }
 
+  const look = lookFromQuery(row, url.searchParams);
+  const body = () => badge(look.size, look.style, row.label, look.variant);
+
   // A HEAD request (link checkers) gets the badge but never binds or records.
-  if (request.method === "HEAD") return svg(badge(row.size, row.style, row.label, row.variant));
+  if (request.method === "HEAD") return svg(body());
 
   const host = bindableHost(request.headers.get("Referer"));
   let record = true;
@@ -80,7 +83,19 @@ export async function handleLiveBadge(request, env, token, url) {
 
   if (record) await db.prepare("INSERT OR IGNORE INTO daily (token, day) VALUES (?, ?)").bind(token, today()).run();
 
-  return svg(badge(row.size, row.style, row.label, row.variant));
+  return svg(body());
+}
+
+// The label is the claim and always comes from storage. The look (s=style,
+// z=size, v=variant) comes from the URL, so a site can swap themes; each
+// missing or invalid value falls back to what was stored at Generate.
+export function lookFromQuery(row, params) {
+  const look = { style: row.style, size: row.size, variant: row.variant };
+  for (const [key, param] of [["style", "s"], ["size", "z"], ["variant", "v"]]) {
+    const value = params.get(param);
+    if (value !== null && parseSettings({ ...look, label: row.label, [key]: value })) look[key] = value;
+  }
+  return look;
 }
 
 const flag = (db, token) => db.prepare("UPDATE badges SET status = 'flagged' WHERE token = ?").bind(token).run();

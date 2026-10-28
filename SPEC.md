@@ -260,7 +260,7 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 ### 8.2 `GET /b/:token.svg` (the hot path)
 
 1. Look up the token. Unknown token: return a neutral "Made Openly" badge, record nothing.
-2. Draw the SVG from the stored settings (query params are only hints for caching; stored settings win).
+2. Draw the SVG. The label always comes from storage, since it is what the counter counts. The look comes from the query string: `s` style, `z` size, `v` variant, so a site can swap themes without a new token. A missing or invalid value falls back to the stored setting. (Decided by the owner, 29 Oct 2026.)
 3. Read the `Referer` header. Take its host. Ignore and do not bind if it is missing, `localhost`, an IP address, or a known preview host (`*.pages.dev`, `*.vercel.app`, `*.netlify.app` previews, `127.0.0.1`, etc.).
 4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `status='bound'`, `verify_method='live'`).
 5. If the token is bound to host A and the referrer is host B: record nothing, and set `status='flagged'` (someone copied another site's snippet).
