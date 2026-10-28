@@ -2,6 +2,11 @@ name = "madeopenly"
 main = "src/index.js"
 compatibility_date = "2026-10-28"
 
+# Self-hosted Inter (no third-party font requests). Files here are served
+# directly; every other path goes to the Worker.
+[assets]
+directory = "./public"
+
 [vars]
 TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put
 
