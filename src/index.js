@@ -1,5 +1,6 @@
 import { badge, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
+import { TOKEN_PATH, handleLiveBadge } from "./live.js";
 
 const SVG_TYPE = "image/svg+xml";
 
@@ -10,13 +11,6 @@ export function svgResponse(svg, cacheControl) {
       "Cache-Control": cacheControl,
       "X-Content-Type-Options": "nosniff",
     },
-  });
-}
-
-export function json(data, status = 200, headers = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...headers },
   });
 }
 
@@ -42,10 +36,13 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const { pathname } = url;
-    const method = request.method;
+    // HEAD is answered like GET; the runtime drops the body.
+    const method = request.method === "HEAD" ? "GET" : request.method;
 
     if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
     if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
+    const live = method === "GET" && TOKEN_PATH.exec(pathname);
+    if (live) return handleLiveBadge(request, env, live[1], url);
 
     return new Response("Not found", { status: 404 });
   },
