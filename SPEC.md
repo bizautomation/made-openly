@@ -45,7 +45,7 @@ The question moves from purity (did a machine touch this?) to character (is the 
 - **Cloudflare rate limiting** guards the endpoints (section 9).
 - Account: the existing Biz-Automation Cloudflare account on the Workers Paid plan, shared with bizat.co and Muninn. Keep Made Openly **isolated**: its own Worker, its own D1 database, its own scoped API token. Never share a database with another project.
 - Domain: `madeopenly.com` (registered on Cloudflare Registrar).
-- Repo: `github.com/bizautomation/madeopenly`, public. Secrets live in Cloudflare environment settings, never in the repo.
+- Repo: `github.com/bizautomation/made-openly`, public. Secrets live in Cloudflare environment settings, never in the repo.
 
 ---
 
