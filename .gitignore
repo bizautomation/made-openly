@@ -147,3 +147,10 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Cloudflare / local
+.dev.vars
+.dev.vars.*
+.credentials
+.wrangler/
+node_modules/

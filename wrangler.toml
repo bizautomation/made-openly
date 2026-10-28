@@ -1,0 +1,52 @@
+name = "madeopenly"
+main = "src/index.js"
+compatibility_date = "2026-10-28"
+
+# Self-hosted Inter (no third-party font requests). Files here are served
+# directly; every other path goes to the Worker.
+[assets]
+directory = "./public"
+
+[vars]
+TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put
+MAIL_FROM = "Made Openly <we@madeopenly.com>" # Resend sender. RESEND_API_KEY, ADMIN_EMAIL and ADMIN_SIGNING_KEY are secrets
+
+[[d1_databases]]
+binding = "DB"
+database_name = "madeopenly"
+database_id = "8b865803-b237-4d15-a96e-e63af9f16be4"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["0 2 * * 1"] # Mondays 02:00 UTC, weekly verification (SPEC.md 8.3)
+
+# Rate limits (SPEC.md 9). The binding only supports 10 s or 60 s windows,
+# so these are per-minute limits; longer windows are zone WAF rules.
+# Keys are the client IP, held in memory by the limiter only, never stored.
+[[ratelimits]]
+name = "RL_GENERATE"
+namespace_id = "62801"
+  [ratelimits.simple]
+  limit = 5
+  period = 60
+
+[[ratelimits]]
+name = "RL_BADGE"
+namespace_id = "62802"
+  [ratelimits.simple]
+  limit = 300
+  period = 60
+
+[[ratelimits]]
+name = "RL_CONTACT"
+namespace_id = "62803"
+  [ratelimits.simple]
+  limit = 1
+  period = 60
+
+[[ratelimits]]
+name = "RL_LIST"
+namespace_id = "62804"
+  [ratelimits.simple]
+  limit = 3
+  period = 60

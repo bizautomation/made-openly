@@ -1,0 +1,21 @@
+name: mascot-check
+
+on:
+  push:
+    paths: ["mascots/**", "scripts/check-mascots.js", ".github/workflows/mascot-check.yml"]
+  pull_request:
+    paths: ["mascots/**", "scripts/check-mascots.js", ".github/workflows/mascot-check.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # No dependencies needed: the checker uses Node built-ins only.
+      - run: node scripts/check-mascots.js mascots

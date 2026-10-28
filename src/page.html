@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Made Openly: say how it was made</title>
+<meta name="description" content="A free badge that says, openly, how much AI helped make your work.">
+<link rel="icon" href="/badge.svg?z=small&amp;v=robot" type="image/svg+xml">
+<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/InterVariable.woff2) format("woff2")}
+:root{--paper:#FAF8F5;--ink:#1F2937;--ink-soft:#6B7280;--line:#E5E7EB;--machine:#0F766E;--machine-deep:#0A4F4A;--machine-tint:#CCE7E4;--mid:#5FA8A0;--human:#E39565;--human-deep:#B45309;--alert:#B91C1C}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6}
+a{color:var(--machine)}
+a:hover{color:var(--machine-deep)}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+nav{border-bottom:1px solid var(--line);background:var(--paper)}
+nav .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-top:14px;padding-bottom:14px}
+nav .brand{font-weight:700;letter-spacing:.08em;font-size:13px;color:var(--machine);text-decoration:none;margin-right:auto}
+nav a:not(.brand){font-size:15px;text-decoration:none;color:var(--ink)}
+nav a:not(.brand):hover{color:var(--machine)}
+section{padding:56px 0;border-bottom:1px solid var(--line)}
+h1{font-size:40px;line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
+h2{font-size:26px;line-height:1.25;margin:0 0 20px;letter-spacing:-.01em}
+h3{font-size:17px;margin:0 0 6px}
+p{margin:0 0 14px}
+.lead{font-size:20px;color:var(--ink-soft);margin-bottom:28px}
+.soft{color:var(--ink-soft)}
+.small{font-size:15px}
+.btn{display:inline-block;font:inherit;font-weight:600;font-size:16px;background:var(--machine);color:#fff;border:0;border-radius:8px;padding:12px 22px;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--machine-deep);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.quiet{background:#fff;color:var(--machine);border:1px solid var(--line);padding:8px 14px;font-size:15px}
+.btn.quiet:hover{border-color:var(--machine)}
+.why p{font-size:19px}
+fieldset{border:0;margin:0 0 22px;padding:0;min-width:0}
+legend{font-weight:600;margin-bottom:8px;padding:0}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:block;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:15px;cursor:pointer}
+.choice input:checked+span{border-color:var(--machine);background:var(--machine-tint);color:var(--machine-deep);font-weight:600}
+.choice input:focus-visible+span{outline:2px solid var(--machine);outline-offset:2px}
+.labels{display:grid;gap:8px}
+.labels .choice span{padding:12px 14px}
+.labels .choice b{display:block;font-size:16px}
+.labels .choice small{display:block;font-weight:400;color:var(--ink-soft);font-size:14px;line-height:1.45}
+.preview{display:flex;align-items:center;justify-content:center;min-height:120px;border:1px solid var(--line);border-radius:10px;margin:0 0 22px;background:#fff}
+.preview.on-dark{background:#1C1B19;border-color:#1C1B19}
+.preview img{max-width:100%;height:auto}
+label.field{display:block;font-weight:600;margin-bottom:6px}
+input[type=url],input[type=email],input[type=text],textarea{width:100%;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--machine);outline-offset:1px;border-color:var(--machine)}
+textarea{min-height:140px;resize:vertical}
+.hint{font-size:14px;color:var(--ink-soft);margin:6px 0 12px}
+.check{display:flex;gap:10px;align-items:center;margin:0 0 20px}
+.check input{width:18px;height:18px;accent-color:var(--machine)}
+.ts{margin:0 0 16px;min-height:65px}
+.result{margin-top:28px;display:none}
+.result.show{display:block}
+pre{margin:0 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.block{margin-bottom:22px}
+.error{color:var(--alert);font-size:15px;min-height:1.4em;margin:10px 0 0}
+.ok{color:var(--machine-deep);font-size:15px;min-height:1.4em;margin:10px 0 0}
+.bars{display:grid;gap:12px;margin:0 0 20px}
+.bar-row{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:10px;font-size:15px}
+.bar-track{height:14px;background:var(--line);border-radius:7px;overflow:hidden}
+.bar-fill{height:100%;border-radius:7px;width:0}
+.bar-row .n{text-align:right;font-variant-numeric:tabular-nums}
+.total{font-size:20px;margin:0 0 8px}
+.total b{font-size:32px}
+.spark{display:block;width:100%;height:60px;margin:0 0 16px}
+.listed{list-style:none;margin:0 0 16px;padding:0}
+.listed li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.listed li .place{font-weight:600;word-break:break-all}
+.listed li button{margin-left:auto;font:inherit;font-size:13px;background:none;border:0;color:var(--ink-soft);text-decoration:underline;cursor:pointer;padding:0}
+details{border-bottom:1px solid var(--line);padding:14px 0}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{font-weight:600;cursor:pointer;list-style-position:outside}
+details p{margin:10px 0 0}
+footer{padding:40px 0 56px;font-size:14px;color:var(--ink-soft)}
+footer h2{font-size:17px;color:var(--ink);margin-bottom:12px}
+footer p{margin:0 0 10px}
+@media (max-width:420px){nav .wrap{gap:6px 12px}nav .brand{font-size:12px;flex-basis:100%}nav a:not(.brand){font-size:14px}}
+@media (min-width:640px){h1{font-size:48px}section{padding:72px 0}.labels{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<nav aria-label="Jump to">
+  <div class="wrap">
+    <a class="brand" href="#top">MADE OPENLY</a>
+    <a href="#get">Get a badge</a>
+    <a href="#count">Count</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <h1>Say how it was made.</h1>
+    <p class="lead">A free badge that says, openly, how much AI helped make your work.</p>
+    <a class="btn" href="#get">Get a badge</a>
+  </div>
+</section>
+
+<section class="why" id="why">
+  <div class="wrap">
+    <h2>Why</h2>
+    <p>Most badges about AI ask one question: did a machine touch this?</p>
+    <p>Made Openly asks another: is the maker honest about how it was made?</p>
+    <p>Using the tool is not the problem. Hiding it is.</p>
+    <p>Wearing the badge says: this was my hand, and the machine carried it.</p>
+  </div>
+</section>
+
+<section id="get">
+  <div class="wrap">
+    <h2>Get a badge</h2>
+    <form id="picker" novalidate>
+      <fieldset>
+        <legend>How much AI was involved? <span class="soft">You decide.</span></legend>
+        <div class="choices labels">
+          <label class="choice"><input type="radio" name="label" value="mostly-ai"><span><b>Mostly AI</b><small>AI did most of the making. A person directed, chose and checked.</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="human-ai" checked><span><b>Human + AI</b><small>A person and AI worked on it together, back and forth.</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="human-only"><span><b>Human only</b><small>No AI in the making, or only spelling-level help.</small></span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Size</legend>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="size" value="large" checked><span>Large (176 × 62)</span></label>
+          <label class="choice"><input type="radio" name="size" value="small"><span>Small (88 × 31)</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Style</legend>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="style" value="light" checked><span>Light</span></label>
+          <label class="choice"><input type="radio" name="style" value="dark"><span>Dark</span></label>
+          <label class="choice"><input type="radio" name="style" value="clear-light"><span>Clear on light</span></label>
+          <label class="choice"><input type="radio" name="style" value="clear-dark"><span>Clear on dark</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Look</legend>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="variant" value="robot" checked><span>With mascot</span></label>
+          <label class="choice"><input type="radio" name="variant" value="wordmark"><span>Words only</span></label>
+        </div>
+      </fieldset>
+      <fieldset id="mascot-set">
+        <legend>Mascot</legend>
+        <div class="choices" id="mascots"></div>
+        <p class="hint"><a href="https://github.com/bizautomation/made-openly/blob/main/CONTRIBUTING.md">Design one</a></p>
+      </fieldset>
+
+      <div class="preview" id="preview-box"><img id="preview" src="/badge.svg" width="176" height="62" alt="Made Openly: Human + AI"></div>
+
+      <label class="field" for="declared">Where will this badge live? <span class="soft">(paste the page address)</span></label>
+      <input type="url" id="declared" name="declared_url" placeholder="https://" inputmode="url" autocomplete="url">
+      <p class="hint">Optional. Use it for Substack, GitHub, Medium and Notion. They copy images instead of loading them from us.</p>
+      <label class="check"><input type="checkbox" name="is_product" id="is-product"> This is a product</label>
+
+      <div class="ts" id="ts-generate"></div>
+      <button class="btn" type="submit" id="generate">Generate</button>
+      <p class="error" id="generate-error" role="alert"></p>
+    </form>
+
+    <div class="result" id="result" aria-live="polite">
+      <div class="block">
+        <p>Paste this where the badge should appear.</p>
+        <pre id="snippet"></pre>
+        <button class="btn quiet" type="button" data-copy="snippet">Copy</button>
+      </div>
+      <div class="block">
+        <p>Your site switches between light and dark? Use this version instead.</p>
+        <pre id="theme-snippet"></pre>
+        <button class="btn quiet" type="button" data-copy="theme-snippet">Copy</button>
+      </div>
+    </div>
+    <p class="small soft" style="margin-top:22px">For a PDF, video or app store page, <a id="download" href="/badge.svg?download=1" download="made-openly.svg">download the plain badge</a>. It has no tracking and is never counted.</p>
+  </div>
+</section>
+
+<section id="count">
+  <div class="wrap">
+    <h2>Who wears which badge</h2>
+    <div class="bars" id="bars">
+      <div class="bar-row"><span>Mostly AI</span><div class="bar-track"><div class="bar-fill" data-label="mostly-ai" style="background:var(--machine)"></div></div><span class="n" data-n="mostly-ai">0</span></div>
+      <div class="bar-row"><span>Human + AI</span><div class="bar-track"><div class="bar-fill" data-label="human-ai" style="background:var(--mid)"></div></div><span class="n" data-n="human-ai">0</span></div>
+      <div class="bar-row"><span>Human only</span><div class="bar-track"><div class="bar-fill" data-label="human-only" style="background:var(--human)"></div></div><span class="n" data-n="human-only">0</span></div>
+    </div>
+    <p class="total">Total: <b id="total">0</b> verified places<span id="week-growth"></span></p>
+    <svg class="spark" id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <p class="soft small">This counts places wearing the badge, not visitors. Each place counts once a day, and only if we can find the badge there.</p>
+
+    <h3 style="margin-top:28px">Places that asked to be named</h3>
+    <ul class="listed" id="listed"><li class="soft">None yet.</li></ul>
+    <p class="error" id="report-msg" role="status"></p>
+    <details id="ask-named">
+      <summary>Wearing a verified badge? Ask to be named</summary>
+      <form id="list-form" novalidate>
+        <p class="hint">Paste your badge snippet or its token. We name places after a quick check.</p>
+        <input type="text" name="token" id="list-token" placeholder="Snippet or token" autocomplete="off">
+        <p style="margin-top:12px"><button class="btn quiet" type="submit">Ask to be named</button></p>
+        <p class="ok" id="list-msg" role="status"></p>
+      </form>
+    </details>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <details><summary>What does each badge mean, and who decides?</summary>
+      <p>You decide. Mostly AI: AI did most of the making, and a person directed, chose and checked. Human + AI: you worked together, back and forth. Human only: no AI, or only spelling-level help. The badge is a statement from you, not a certificate.</p></details>
+    <details><summary>Is this tracking my visitors?</summary>
+      <p>No. It counts places, not people. It stores no IP addresses and sets no cookies.</p></details>
+    <details><summary>What exactly do you record?</summary>
+      <p>The place (site, repo or page address), the badge you chose, and the days it was seen. Nothing about the people who visit.</p></details>
+    <details><summary>How do I remove my badge or my data?</summary>
+      <p>Take the badge off. The next weekly check sees it is gone and deletes its data.</p></details>
+    <details><summary>Why is there no sign-up?</summary>
+      <p>It isn't needed. The badge is the record, and taking it off is how you leave.</p></details>
+    <details><summary>Can I trust the counter?</summary>
+      <p>Each place counts once a day at most. A place counts only after our weekly check finds the badge there. Visits are never counted.</p></details>
+    <details><summary>Does it work on Substack, GitHub, Medium or Notion?</summary>
+      <p>Yes. Paste the page address when you make the badge, and the weekly check looks for it there.</p></details>
+    <details><summary>What about apps, PDFs or videos?</summary>
+      <p>Use the plain badge. It works anywhere but is not counted.</p></details>
+    <details><summary>Is it free? Where is the code?</summary>
+      <p>Free. The code is open <a href="https://github.com/bizautomation/made-openly">on GitHub</a>.</p></details>
+    <details><summary>Can I design a mascot?</summary>
+      <p>Yes. Mascots are added on GitHub, and the designer is credited. See <a href="https://github.com/bizautomation/made-openly/blob/main/CONTRIBUTING.md">how to propose one</a>.</p></details>
+    <details><summary>Why build this?</summary>
+      <p>Badges like "Not By AI" say no machine was involved. This is the mirror: a way to say a machine was involved, and that you are not hiding it.</p></details>
+    <p class="small soft" style="margin-top:20px">We may remove any place from the public list without notice. It still counts.</p>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <h2>Write to us</h2>
+    <form id="contact-form" novalidate>
+      <label class="field" for="c-name">Name <span class="soft">(optional)</span></label>
+      <input type="text" id="c-name" name="name" maxlength="100" autocomplete="name">
+      <label class="field" for="c-email" style="margin-top:16px">Email</label>
+      <input type="email" id="c-email" name="email" maxlength="254" required autocomplete="email">
+      <label class="field" for="c-body" style="margin-top:16px">Message</label>
+      <textarea id="c-body" name="body" maxlength="5000" required></textarea>
+      <div class="ts" id="ts-contact" style="margin-top:16px"></div>
+      <button class="btn" type="submit">Send</button>
+      <p class="ok" id="contact-msg" role="status"></p>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer id="privacy">
+  <div class="wrap">
+    <h2>Privacy</h2>
+    <p>The badge records the place it appears (site, repo or page address), the badge chosen, and the days it was seen. Nothing about the people who visit that place.</p>
+    <p>No cookies, no tracking scripts, no IP addresses stored.</p>
+    <p>The contact form keeps your name, email and message, used only to reply.</p>
+    <p>Turnstile, a Cloudflare service, protects the forms.</p>
+    <p>To delete a badge's data, remove the badge. It is deleted at the next weekly check. For anything else, use the contact form.</p>
+    <p>Run by Biz-Automation Co., Ltd., Bangkok, Thailand.</p>
+  </div>
+</footer>
+
+<script>
+const SITE_KEY = "__TURNSTILE_SITE_KEY__";
+const MASCOTS = __MASCOTS__;
+const ORIGIN = "https://madeopenly.com";
+const DIM = { small: [88, 31], large: [176, 62] };
+const TEXT = { "mostly-ai": "Mostly AI", "human-ai": "Human + AI", "human-only": "Human only" };
+const $ = (id) => document.getElementById(id);
+const picker = $("picker");
+
+// Mascot choices come from mascots/registry.json.
+$("mascots").innerHTML = MASCOTS.map((m, i) =>
+  `<label class="choice"><input type="radio" name="mascot" value="${esc(m.slug)}"${i === 0 ? " checked" : ""}><span>${esc(m.name)}, by ${esc(m.designer)}</span></label>`).join("");
+
+function settings() {
+  const f = new FormData(picker);
+  return { label: f.get("label"), size: f.get("size"), style: f.get("style"), variant: f.get("variant"), mascot: f.get("mascot") || "robot" };
+}
+const query = (s) => `l=${s.label}&s=${s.style}&z=${s.size}&v=${s.variant}&m=${s.mascot}`;
+
+function updatePreview() {
+  const s = settings();
+  const img = $("preview");
+  img.src = `/badge.svg?${query(s)}`;
+  [img.width, img.height] = DIM[s.size];
+  img.alt = `Made Openly: ${TEXT[s.label]}`;
+  $("preview-box").classList.toggle("on-dark", s.style.endsWith("dark"));
+  $("mascot-set").hidden = s.variant !== "robot";
+  $("download").href = `/badge.svg?${query(s)}&download=1`;
+  $("result").classList.remove("show");
+}
+picker.addEventListener("change", updatePreview);
+updatePreview();
+
+// Theme swap: switch between the light and dark version when the page theme changes.
+function themeSnippet(snippet, s) {
+  const clear = s.style.startsWith("clear-");
+  const light = clear ? "clear-light" : "light", dark = clear ? "clear-dark" : "dark";
+  const tagged = snippet.replace("<img ", '<img id="made-openly-badge" ');
+  return `${tagged}
+<script>
+(() => {
+  const img = document.getElementById("made-openly-badge");
+  const root = document.documentElement;
+  const set = () => {
+    const dark = root.dataset.theme === "dark" || root.classList.contains("dark");
+    img.src = img.src.replace(/([?&]s=)[a-z-]+/, "$1" + (dark ? "${dark}" : "${light}"));
+  };
+  set();
+  new MutationObserver(set).observe(root, { attributes: true, attributeFilter: ["data-theme", "class"] });
+})();
+<\/script>`;
+}
+
+// Turnstile, rendered explicitly so each form has its own widget.
+const widgets = {};
+window.onTurnstileLoad = () => {
+  widgets.generate = turnstile.render("#ts-generate", { sitekey: SITE_KEY });
+  widgets.contact = turnstile.render("#ts-contact", { sitekey: SITE_KEY });
+};
+const tsToken = (name) => (window.turnstile && widgets[name] !== undefined ? turnstile.getResponse(widgets[name]) : "");
+const tsReset = (name) => window.turnstile && widgets[name] !== undefined && turnstile.reset(widgets[name]);
+
+async function post(path, body) {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let data = {};
+  try { data = await res.json(); } catch {}
+  return { ok: res.ok, data };
+}
+
+picker.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("generate-error");
+  err.textContent = "";
+  const s = settings();
+  const declared = $("declared").value.trim();
+  if (declared && !declared.startsWith("https://")) { err.textContent = "The page address must start with https://"; return; }
+  const token = tsToken("generate");
+  if (!token) { err.textContent = "Please complete the human check first."; return; }
+  $("generate").disabled = true;
+  const { ok, data } = await post("/api/generate", { ...s, declared_url: declared || undefined, is_product: $("is-product").checked, turnstile_token: token });
+  $("generate").disabled = false;
+  tsReset("generate");
+  if (!ok) { err.textContent = data.error || "Something went wrong. Please try again."; return; }
+  $("snippet").textContent = data.snippet;
+  $("theme-snippet").textContent = themeSnippet(data.snippet, s);
+  $("result").classList.add("show");
+  $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-copy]");
+  if (!btn) return;
+  try {
+    await navigator.clipboard.writeText($(btn.dataset.copy).textContent);
+    btn.textContent = "Copied";
+  } catch {
+    btn.textContent = "Select and copy by hand";
+  }
+  setTimeout(() => (btn.textContent = "Copy"), 2000);
+});
+
+// Counter from /stats.json.
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+async function loadStats() {
+  let s;
+  try { s = await (await fetch("/stats.json")).json(); } catch { return; }
+  const max = Math.max(1, ...Object.values(s.by_label));
+  for (const [label, n] of Object.entries(s.by_label)) {
+    const fill = document.querySelector(`.bar-fill[data-label="${label}"]`);
+    if (fill) fill.style.width = `${(n / max) * 100}%`;
+    const num = document.querySelector(`[data-n="${label}"]`);
+    if (num) num.textContent = n;
+  }
+  $("total").textContent = s.total_verified;
+  $("week-growth").textContent = s.new_last_7_days ? `, +${s.new_last_7_days} this week` : "";
+  const w = s.weekly;
+  if (w.length > 1) {
+    const top = Math.max(1, ...w.map((x) => x.verified));
+    const pts = w.map((x, i) => `${((i / (w.length - 1)) * 296 + 2).toFixed(1)},${(56 - (x.verified / top) * 52).toFixed(1)}`).join(" ");
+    $("spark").innerHTML = `<polyline points="${pts}" fill="none" stroke="#0F766E" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  }
+  if (s.listed.length)
+    $("listed").innerHTML = s.listed.map((p) =>
+      `<li><span class="place">${esc(p.place)}</span><span class="soft">${TEXT[p.label] || ""} · ${esc(p.kind)}</span><button type="button" data-report="${esc(p.place)}">Report</button></li>`).join("");
+}
+loadStats();
+
+$("listed").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-report]");
+  if (!b) return;
+  const { ok, data } = await post("/api/report", { place: b.dataset.report });
+  $("report-msg").className = ok ? "ok" : "error";
+  $("report-msg").textContent = ok ? "Thanks. That place is hidden until we review it." : data.error || "That didn't send. Please try again.";
+  if (ok) b.closest("li").remove();
+});
+
+$("list-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = $("list-token").value;
+  const m = raw.match(/[?&]t=([A-Za-z0-9]{16,64})|\/b\/([A-Za-z0-9]{16,64})\.svg|^\s*([A-Za-z0-9]{16,64})\s*$/);
+  const msg = $("list-msg");
+  if (!m) { msg.className = "error"; msg.textContent = "That doesn't look like a badge snippet or token."; return; }
+  const { ok, data } = await post("/api/list", { token: m[1] || m[2] || m[3] });
+  msg.className = ok ? "ok" : "error";
+  msg.textContent = ok ? "Thanks. We'll name your place after a quick check." : data.error || "That didn't send. Please try again.";
+});
+
+$("contact-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const msg = $("contact-msg");
+  const email = String(f.get("email")).trim(), body = String(f.get("body")).trim();
+  if (!email.includes("@") || !body) { msg.className = "error"; msg.textContent = "Please add your email and a message."; return; }
+  const token = tsToken("contact");
+  if (!token) { msg.className = "error"; msg.textContent = "Please complete the human check first."; return; }
+  const { ok } = await post("/api/contact", { name: f.get("name"), email, body, turnstile_token: token });
+  tsReset("contact");
+  msg.className = ok ? "ok" : "error";
+  msg.textContent = ok ? "Thanks. We'll reply by email." : "That didn't send. Please try again.";
+  if (ok) e.target.reset();
+});
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&amp;onload=onTurnstileLoad" async defer></script>
+</body>
+</html>
