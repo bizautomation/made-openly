@@ -216,7 +216,17 @@ CREATE TABLE messages (
   body       TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE weekly_counts (               -- anonymous snapshot, written by the weekly check
+  week     TEXT NOT NULL,                  -- ISO week, e.g. 2026-W45
+  label    TEXT NOT NULL,
+  kind     TEXT NOT NULL,
+  verified INTEGER NOT NULL,               -- verified places with this label and kind that week
+  PRIMARY KEY (week, label, kind)
+);
 ```
+
+`weekly_counts` holds counts only, never a token or host, so removing a badge still deletes all of its data while past weeks of the growth line stay correct.
 
 No IP address, user agent or visitor identifier is stored anywhere.
 
@@ -296,6 +306,8 @@ Limits are keyed by IP using Cloudflare's rate limiting. The IP is held in memor
 | `/api/contact` | Turnstile + per-IP | 3 per hour |
 | `/api/list`, `/api/report` | per-IP | 10 per hour |
 
+The Workers rate-limit binding only counts over 10 or 60 seconds, so the Worker enforces per-minute limits (Generate 5, contact 1, list/report 3 per minute per IP, badge 300) and the longer windows above are zone WAF rate-limiting rules. Decided by the owner, 28 Oct 2026.
+
 Cleanup: tokens never bound or declared within 30 days are deleted by the weekly job.
 
 ---
@@ -320,6 +332,8 @@ A **verified place**: one token, found at its place by the weekly check. Each pl
   "listed": [ { "place": "example.com", "label": "human-ai", "kind": "site", "since": "2026-11-02" } ]
 }
 ```
+
+`weekly` comes from `weekly_counts` (one snapshot per weekly run), not from the current `badges` rows.
 
 Optional: `/stats.json?since=YYYY-MM-DD` returns only places first verified since that date. This endpoint is how a scheduled assistant reads the numbers for the weekly marketing report, and it powers the on-page counter.
 
