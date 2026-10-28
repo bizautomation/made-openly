@@ -27,6 +27,16 @@ describe("plain badge download", () => {
   });
 });
 
+describe("AI assistant prompt", () => {
+  it("is on the page with a Copy button, and keeps the badge loading from madeopenly.com", async () => {
+    const html = await (await call("/")).text();
+    expect(html).toContain('<pre id="ai-prompt"></pre>');
+    expect(html).toContain('data-copy="ai-prompt"');
+    expect(html).toContain("Do not download the image");
+    expect(html).toMatch(/\$\("ai-block"\)\.hidden = data\.place_kind === "post"/);
+  });
+});
+
 describe("POST /api/contact", () => {
   let fetchMock;
   beforeEach(() => (fetchMock = mockFetch((url) => (url === "https://api.resend.com/emails" ? Response.json({ id: "m1" }) : new Response("", { status: 404 })))));
