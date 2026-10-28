@@ -1,0 +1,32 @@
+{
+  "name": "madeopenly",
+  "version": "1.0.0",
+  "description": "Badges that say how a work was made, openly: Mostly AI, Human + AI, Human only. Cloudflare Worker + D1, open source.",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply madeopenly --local",
+    "db:migrate:remote": "wrangler d1 migrations apply madeopenly --remote"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bizautomation/made-openly.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/bizautomation/made-openly/issues"
+  },
+  "homepage": "https://github.com/bizautomation/made-openly#readme",
+  "private": true,
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.9",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.154.0"
+  },
+  "allowScripts": {
+    "workerd@1.20261023.1": true,
+    "esbuild@0.28.2": true
+  }
+}
