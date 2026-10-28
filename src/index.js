@@ -1,4 +1,5 @@
 import { badge, parseSettings } from "./badge.js";
+import { handleGenerate } from "./generate.js";
 
 const SVG_TYPE = "image/svg+xml";
 
@@ -44,6 +45,7 @@ export default {
     const method = request.method;
 
     if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
+    if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
 
     return new Response("Not found", { status: 404 });
   },
