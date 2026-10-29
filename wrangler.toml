@@ -2,6 +2,14 @@ name = "madeopenly"
 main = "src/index.js"
 compatibility_date = "2026-10-28"
 
+# Served only on the custom domains. workers.dev and preview URLs stay off.
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "madeopenly.com", custom_domain = true },
+  { pattern = "www.madeopenly.com", custom_domain = true },
+]
+
 # Self-hosted Inter (no third-party font requests). Files here are served
 # directly; every other path goes to the Worker.
 [assets]

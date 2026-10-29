@@ -173,6 +173,10 @@ Contrast checked: Ink on Paper 13.8:1, Machine on white 5.5:1, Human deep on whi
 
 For sites with their own light/dark toggle, offer a copy-ready snippet that swaps `s=light` and `s=dark` when the page theme changes (a `MutationObserver` on the page's theme attribute). Tested on bizat.co: the swap is instant.
 
+### AI assistant prompt
+
+After Generate, the page also offers a copy-ready prompt for an AI coding assistant such as Claude Code. Pasted into the assistant inside the site's or repo's project, it adds the badge: to the shared footer for a site or product (with the theme-swap version for sites with a theme toggle), or under the title of `README.md` for a repo. It tells the assistant to keep the token, URLs, size and alt text exactly, never to download the image, and to show the diff before committing. Posts (Substack, Medium) get no prompt, since there is no project to edit. Decided by the owner, 29 Oct 2026.
+
 ### Plain badge (no tracking)
 
 A downloadable SVG/PNG with no token, for PDFs, ebooks, videos and app store pages. It is never counted.
