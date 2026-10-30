@@ -1,4 +1,4 @@
-import { badge, parseSettings } from "./badge.js";
+import { badge, labelText, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
 import { TOKEN_PATH, handleLiveBadge } from "./live.js";
 import { handleStats } from "./stats.js";
@@ -7,6 +7,7 @@ import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, sendReviewEmail } from "./moderation.js";
 import pageHtml from "./page.html";
 import registry from "../mascots/registry.json";
+import { BAR_NOTE, MEANINGS, TEST } from "./labels.js";
 
 const SVG_TYPE = "image/svg+xml";
 
@@ -54,10 +55,17 @@ const CSP = [
   "frame-ancestors 'none'",
 ].join("; ");
 
-// GET /: the single page. No cookies are set.
-function page(env) {
+// GET /: the single page. No cookies are set. Someone who clicked a badge
+// (?t=TOKEN) also sees what that badge's label means; nothing is recorded.
+async function page(env, url) {
   const mascots = JSON.stringify(registry.map(({ slug, name, designer }) => ({ slug, name, designer }))).replaceAll("<", "\\u003c");
-  const html = pageHtml.replace("__TURNSTILE_SITE_KEY__", env.TURNSTILE_SITE_KEY ?? "").replace("__MASCOTS__", mascots);
+  let html = pageHtml
+    .replace("__TURNSTILE_SITE_KEY__", env.TURNSTILE_SITE_KEY ?? "")
+    .replace("__MASCOTS__", mascots)
+    .replaceAll("__TEST__", TEST)
+    .replaceAll("__BAR_NOTE__", BAR_NOTE);
+  for (const [slug, meaning] of Object.entries(MEANINGS)) html = html.replaceAll(`__MEANING_${slug}__`, meaning);
+  html = html.replace("__BADGE_NOTE__", await badgeNote(env, url.searchParams.get("t")));
   return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
@@ -69,6 +77,13 @@ function page(env) {
   });
 }
 
+async function badgeNote(env, token) {
+  if (!token || !/^[A-Za-z0-9]{16,64}$/.test(token)) return "";
+  const row = await env.DB.prepare("SELECT label FROM badges WHERE token = ?").bind(token).first();
+  if (!row || !MEANINGS[row.label]) return "";
+  return `<p class="badge-note" id="badge-note"><b>This badge says: ${labelText(row.label)}</b>${MEANINGS[row.label]} ${BAR_NOTE} It is the maker's own statement.</p>\n    `;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -76,7 +91,7 @@ export default {
     // HEAD is answered like GET; the runtime drops the body.
     const method = request.method === "HEAD" ? "GET" : request.method;
 
-    if (method === "GET" && pathname === "/") return page(env);
+    if (method === "GET" && pathname === "/") return page(env, url);
     if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
     if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
     if (method === "POST" && pathname === "/api/list") return handleList(request, env);
