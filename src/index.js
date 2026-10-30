@@ -84,25 +84,42 @@ async function badgeNote(env, token) {
   return `<p class="badge-note" id="badge-note"><b>This badge says: ${labelText(row.label)}</b>${MEANINGS[row.label]} ${BAR_NOTE} It is the maker's own statement.</p>\n    `;
 }
 
+// Private review mirror for the owner (behind Cloudflare Access). Same Worker,
+// but nothing on it may be indexed, followed or used for AI training.
+export const REVIEW_HOSTS = ["madeopenly.bizat.co"];
+const NO_INDEX = "noindex, nofollow, noarchive, noimageindex, noai, noimageai";
+
+// Every route on every host.
+function route(request, env, ctx, url) {
+  const { pathname } = url;
+  // HEAD is answered like GET; the runtime drops the body.
+  const method = request.method === "HEAD" ? "GET" : request.method;
+
+  if (method === "GET" && pathname === "/") return page(env, url);
+  if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
+  if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
+  if (method === "POST" && pathname === "/api/list") return handleList(request, env);
+  if (method === "POST" && pathname === "/api/report") return handleReport(request, env, ctx);
+  if (method === "GET" && pathname === "/admin/review") return handleReview(env, ctx, url);
+  if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
+  if (method === "GET" && pathname === "/stats.json") return handleStats(request, env, ctx, url);
+  const live = method === "GET" && TOKEN_PATH.exec(pathname);
+  if (live) return handleLiveBadge(request, env, live[1], url);
+
+  return new Response("Not found", { status: 404 });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const { pathname } = url;
-    // HEAD is answered like GET; the runtime drops the body.
-    const method = request.method === "HEAD" ? "GET" : request.method;
-
-    if (method === "GET" && pathname === "/") return page(env, url);
-    if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
-    if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
-    if (method === "POST" && pathname === "/api/list") return handleList(request, env);
-    if (method === "POST" && pathname === "/api/report") return handleReport(request, env, ctx);
-    if (method === "GET" && pathname === "/admin/review") return handleReview(env, ctx, url);
-    if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
-    if (method === "GET" && pathname === "/stats.json") return handleStats(request, env, ctx, url);
-    const live = method === "GET" && TOKEN_PATH.exec(pathname);
-    if (live) return handleLiveBadge(request, env, live[1], url);
-
-    return new Response("Not found", { status: 404 });
+    if (!REVIEW_HOSTS.includes(url.hostname)) return route(request, env, ctx, url);
+    if (url.pathname === "/robots.txt")
+      return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX } });
+    // Copy so the headers are writable (cached and JSON responses are immutable).
+    const original = await route(request, env, ctx, url);
+    const res = new Response(original.body, original);
+    res.headers.set("X-Robots-Tag", NO_INDEX);
+    return res;
   },
 
   async scheduled(controller, env, ctx) {

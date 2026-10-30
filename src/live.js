@@ -16,7 +16,7 @@ const NO_BIND_SUFFIXES = [
   ".trycloudflare.com",
   ".localhost",
 ];
-const NO_BIND_HOSTS = ["localhost", "madeopenly.com"];
+const NO_BIND_HOSTS = ["localhost", "madeopenly.com", "madeopenly.bizat.co"];
 
 // The host to bind from a Referer header, or null if it must not bind.
 // "www." is dropped so www.example.com and example.com are one place.
