@@ -367,8 +367,8 @@ function themeSnippet(snippet, s) {
 // Turnstile, rendered explicitly so each form has its own widget.
 const widgets = {};
 window.onTurnstileLoad = () => {
-  widgets.generate = turnstile.render("#ts-generate", { sitekey: SITE_KEY });
-  widgets.contact = turnstile.render("#ts-contact", { sitekey: SITE_KEY });
+  widgets.generate = turnstile.render("#ts-generate", { sitekey: SITE_KEY, action: "generate" });
+  widgets.contact = turnstile.render("#ts-contact", { sitekey: SITE_KEY, action: "contact" });
 };
 const tsToken = (name) => (window.turnstile && widgets[name] !== undefined ? turnstile.getResponse(widgets[name]) : "");
 const tsReset = (name) => window.turnstile && widgets[name] !== undefined && turnstile.reset(widgets[name]);
