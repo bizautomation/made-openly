@@ -61,6 +61,8 @@ The question moves from purity (did a machine touch this?) to character (is the 
 
 The deciding question is: who produced most of the final words, code or images? The bar shows the label, not a measured share. The picker shows each meaning and this question, and someone who arrives by clicking a badge (`/?t=TOKEN`) sees what that badge's label means. `src/labels.js` holds the wording. Decided by the owner, 30 Oct 2026.
 
+The page also gives two everyday examples per label and a tie-break: "Torn between two? Choose the one with more AI. Being open is the point." Labels are always shown in order from human to AI (Human only, Human + AI, Mostly AI). Wording in `src/labels.js`. Approved by the owner, 30 Oct 2026.
+
 Labels avoid prepositions ("by", "with") on purpose: non-native English readers mix them up, and "Made by human" does not fit the small badge.
 
 ### 4.2 Sizes
@@ -356,13 +358,14 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first verified sinc
 
 One page, mobile-first, one column on phones. A small jump menu at the top. Sections in order:
 
-1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. The half-bot bird mascot can appear here when its art is final.
-2. **Why.** Three or four lines from section 1 ("The idea").
-3. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)" plus a "This is a product" checkbox. Turnstile. A **Generate** button returns the snippet with a **Copy** button and the theme-swap snippet. A link to download the plain no-tracking badge.
-4. **Counter.** Section 10.
-5. **FAQ.** Section 11.1.
-6. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
-7. **Privacy** (small footer, about 14 px, not tiny). Section 11.2.
+1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
+2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
+3. **Why.** Three or four lines from section 1 ("The idea").
+4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)" plus a "This is a product" checkbox. Turnstile. A **Generate** button returns the snippet with a **Copy** button and the theme-swap snippet. A link to download the plain no-tracking badge.
+5. **Counter.** Section 10.
+6. **FAQ.** Section 11.1.
+7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
+8. **Privacy** (small footer, about 14 px, not tiny). Section 11.2.
 
 ### Style
 
