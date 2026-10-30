@@ -61,7 +61,7 @@ The question moves from purity (did a machine touch this?) to character (is the 
 
 The deciding question is: who produced most of the final words, code or images? The bar shows the label, not a measured share. The picker shows each meaning and this question, and someone who arrives by clicking a badge (`/?t=TOKEN`) sees what that badge's label means. `src/labels.js` holds the wording. Decided by the owner, 30 Oct 2026.
 
-The page also gives two everyday examples per label and a tie-break: "Torn between two? Choose the one with more AI. Being open is the point." Labels are always shown in order from human to AI (Human only, Human + AI, Mostly AI). Wording in `src/labels.js`. Proposed 30 Oct 2026, pending the owner's approval of the wording.
+The page also gives two everyday examples per label and a tie-break: "Torn between two? Choose the one with more AI. Being open is the point." Labels are always shown in order from human to AI (Human only, Human + AI, Mostly AI). Wording in `src/labels.js`. Approved by the owner, 30 Oct 2026.
 
 Labels avoid prepositions ("by", "with") on purpose: non-native English readers mix them up, and "Made by human" does not fit the small badge.
 
