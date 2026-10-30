@@ -1,4 +1,5 @@
 import { env } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { call, mockFetch, postJson } from "./helpers.js";
 import { BAR_NOTE, MEANINGS, TEST } from "../../src/labels.js";
@@ -65,6 +66,26 @@ describe("AI assistant prompt", () => {
     expect(html).toContain('data-copy="ai-prompt"');
     expect(html).toContain("Do not download the image");
     expect(html).toMatch(/\$\("ai-block"\)\.hidden = data\.place_kind === "post"/);
+  });
+});
+
+describe("review host madeopenly.bizat.co", () => {
+  const onReview = (path) => exports.default.fetch(new Request(`https://madeopenly.bizat.co${path}`));
+
+  it("marks every response noindex and noai", async () => {
+    for (const path of ["/", "/stats.json", "/badge.svg", "/nope"]) {
+      const res = await onReview(path);
+      expect(res.headers.get("X-Robots-Tag")).toBe("noindex, nofollow, noarchive, noimageindex, noai, noimageai");
+    }
+    expect((await onReview("/")).status).toBe(200);
+  });
+
+  it("blocks every crawler in robots.txt", async () => {
+    expect(await (await onReview("/robots.txt")).text()).toBe("User-agent: *\nDisallow: /\n");
+  });
+
+  it("leaves madeopenly.com indexable", async () => {
+    expect((await call("/")).headers.get("X-Robots-Tag")).toBeNull();
   });
 });
 
