@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { exports } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { call, mockFetch, postJson } from "./helpers.js";
-import { BAR_NOTE, MEANINGS, TEST } from "../../src/labels.js";
+import { BAR_NOTE, EXAMPLES, MEANINGS, TEST, TIE_BREAK } from "../../src/labels.js";
 
 describe("GET /", () => {
   it("serves the page with all seven sections in order and no cookie", async () => {
@@ -33,10 +33,20 @@ describe("label meanings", () => {
   it("fills every placeholder and shows each meaning, the test and the bar note", async () => {
     const html = await (await call("/")).text();
     expect(html).not.toMatch(/__[A-Z][A-Za-z_-]*__/);
-    for (const m of Object.values(MEANINGS)) expect(html.split(m).length - 1).toBe(2); // picker and FAQ
+    for (const m of Object.values(MEANINGS)) expect(html.split(m).length - 1).toBe(3); // labels section, picker and FAQ
     expect(html).toContain(TEST);
     expect(html).toContain(BAR_NOTE);
     expect(html).not.toContain('id="badge-note"');
+  });
+
+  it("shows two examples per label and the tie-break, in order from human to AI", async () => {
+    const html = await (await call("/")).text();
+    for (const cases of Object.values(EXAMPLES)) for (const c of cases) expect(html).toContain(`<li>${c}</li>`);
+    expect(html).toContain(TIE_BREAK);
+    const at = (slug) => html.indexOf(`class="card ${slug}"`);
+    expect(at("human-only")).toBeGreaterThan(0);
+    expect(at("human-only")).toBeLessThan(at("human-ai"));
+    expect(at("human-ai")).toBeLessThan(at("mostly-ai"));
   });
 
   it("tells someone who clicked a badge what its label means", async () => {
