@@ -55,9 +55,11 @@ The question moves from purity (did a machine touch this?) to character (is the 
 
 | Slug | Label on badge | AI share on the bar | Meaning (for the FAQ) |
 |---|---|---|---|
-| `mostly-ai` | Mostly AI | 85% | AI did most of the making; a human directed, chose and checked. |
-| `human-ai` | Human + AI | 50% | A human and AI worked on it together, back and forth. |
+| `mostly-ai` | Mostly AI | 85% | AI produced most of the final work. A person directed, chose and checked it. |
+| `human-ai` | Human + AI | 50% | A person produced a real share of the final work, and AI helped. |
 | `human-only` | Human only | 0% | No AI in the making, or only spelling-level help. |
+
+The deciding question is: who produced most of the final words, code or images? The bar shows the label, not a measured share. The picker shows each meaning and this question, and someone who arrives by clicking a badge (`/?t=TOKEN`) sees what that badge's label means. `src/labels.js` holds the wording. Decided by the owner, 30 Oct 2026.
 
 Labels avoid prepositions ("by", "with") on purpose: non-native English readers mix them up, and "Made by human" does not fit the small badge.
 
