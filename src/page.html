@@ -27,6 +27,8 @@ h2{font-size:26px;line-height:1.25;margin:0 0 20px;letter-spacing:-.01em}
 h3{font-size:17px;margin:0 0 6px}
 p{margin:0 0 14px}
 .lead{font-size:20px;color:var(--ink-soft);margin-bottom:28px}
+.badge-note{border-left:4px solid var(--machine);background:#fff;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0}
+.badge-note b{display:block}
 .soft{color:var(--ink-soft)}
 .small{font-size:15px}
 .btn{display:inline-block;font:inherit;font-weight:600;font-size:16px;background:var(--machine);color:#fff;border:0;border-radius:8px;padding:12px 22px;cursor:pointer;text-decoration:none}
@@ -102,7 +104,7 @@ footer p{margin:0 0 10px}
 <section class="hero">
   <div class="wrap">
     <h1>Say how it was made.</h1>
-    <p class="lead">A free badge that says, openly, how much AI helped make your work.</p>
+    __BADGE_NOTE__<p class="lead">A free badge that says, openly, how much AI helped make your work.</p>
     <a class="btn" href="#get">Get a badge</a>
   </div>
 </section>
@@ -123,10 +125,11 @@ footer p{margin:0 0 10px}
     <form id="picker" novalidate>
       <fieldset>
         <legend>How much AI was involved? <span class="soft">You decide.</span></legend>
+        <p class="hint">__TEST__ __BAR_NOTE__</p>
         <div class="choices labels">
-          <label class="choice"><input type="radio" name="label" value="mostly-ai"><span><b>Mostly AI</b><small>AI did most of the making. A person directed, chose and checked.</small></span></label>
-          <label class="choice"><input type="radio" name="label" value="human-ai" checked><span><b>Human + AI</b><small>A person and AI worked on it together, back and forth.</small></span></label>
-          <label class="choice"><input type="radio" name="label" value="human-only"><span><b>Human only</b><small>No AI in the making, or only spelling-level help.</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="mostly-ai"><span><b>Mostly AI</b><small>__MEANING_mostly-ai__</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="human-ai" checked><span><b>Human + AI</b><small>__MEANING_human-ai__</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="human-only"><span><b>Human only</b><small>__MEANING_human-only__</small></span></label>
         </div>
       </fieldset>
       <fieldset>
@@ -222,7 +225,7 @@ footer p{margin:0 0 10px}
   <div class="wrap">
     <h2>FAQ</h2>
     <details><summary>What does each badge mean, and who decides?</summary>
-      <p>You decide. Mostly AI: AI did most of the making, and a person directed, chose and checked. Human + AI: you worked together, back and forth. Human only: no AI, or only spelling-level help. The badge is a statement from you, not a certificate.</p></details>
+      <p>You decide. __TEST__ Mostly AI: __MEANING_mostly-ai__ Human + AI: __MEANING_human-ai__ Human only: __MEANING_human-only__ __BAR_NOTE__ The badge is a statement from its maker, not a certificate.</p></details>
     <details><summary>Is this tracking my visitors?</summary>
       <p>No. It counts places, not people. It stores no IP addresses and sets no cookies.</p></details>
     <details><summary>What exactly do you record?</summary>
