@@ -14,7 +14,7 @@ export async function handleContact(request, env, ctx) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     return Response.json({ error: "Send the form as JSON." }, { status: 400 });
 
-  if (!(await verifyTurnstile(env.TURNSTILE_SECRET, input.turnstile_token)))
+  if (!(await verifyTurnstile(env, input.turnstile_token, "contact")))
     return Response.json({ error: "The human check failed. Please try again." }, { status: 403 });
 
   if (!(await withinLimit(env.RL_CONTACT, request)))

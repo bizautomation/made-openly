@@ -93,7 +93,7 @@ describe("POST /api/contact", () => {
   let fetchMock;
   beforeEach(() => (fetchMock = mockFetch((url) => (url === "https://api.resend.com/emails" ? Response.json({ id: "m1" }) : new Response("", { status: 404 })))));
   afterEach(() => vi.unstubAllGlobals());
-  const msg = { name: "Ann", email: "ann@example.com", body: "Hello", turnstile_token: "pass" };
+  const msg = { name: "Ann", email: "ann@example.com", body: "Hello", turnstile_token: "pass-contact" };
 
   it("saves the message", async () => {
     const res = await postJson("/api/contact", msg);

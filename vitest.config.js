@@ -17,6 +17,7 @@ export default defineConfig({
                 // Tests mock siteverify; this never reaches Cloudflare.
                 TURNSTILE_SECRET: "test-secret",
                 STATS_CACHE: "off",
+                TURNSTILE_HOSTNAMES: "madeopenly.com,www.madeopenly.com,madeopenly.bizat.co",
                 // Test-only values; tests mock Resend, so nothing is sent.
                 RESEND_API_KEY: "test-resend-key",
                 ADMIN_EMAIL: "owner@example.com",

@@ -19,6 +19,9 @@ directory = "./public"
 
 [vars]
 TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put
+# Pages a Turnstile token may come from (siteverify hostname). Local dev adds
+# localhost in .dev.vars; it never belongs here.
+TURNSTILE_HOSTNAMES = "madeopenly.com,www.madeopenly.com,madeopenly.bizat.co"
 MAIL_FROM = "Made Openly <we@madeopenly.com>" # Resend sender. RESEND_API_KEY, ADMIN_EMAIL and ADMIN_SIGNING_KEY are secrets
 
 [[d1_databases]]
