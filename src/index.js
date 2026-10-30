@@ -7,7 +7,7 @@ import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, sendReviewEmail } from "./moderation.js";
 import pageHtml from "./page.html";
 import registry from "../mascots/registry.json";
-import { BAR_NOTE, MEANINGS, TEST } from "./labels.js";
+import { BAR_NOTE, EXAMPLES, MEANINGS, TEST, TIE_BREAK } from "./labels.js";
 
 const SVG_TYPE = "image/svg+xml";
 
@@ -63,8 +63,10 @@ async function page(env, url) {
     .replace("__TURNSTILE_SITE_KEY__", env.TURNSTILE_SITE_KEY ?? "")
     .replace("__MASCOTS__", mascots)
     .replaceAll("__TEST__", TEST)
-    .replaceAll("__BAR_NOTE__", BAR_NOTE);
+    .replaceAll("__BAR_NOTE__", BAR_NOTE)
+    .replace("__TIE_BREAK__", TIE_BREAK);
   for (const [slug, meaning] of Object.entries(MEANINGS)) html = html.replaceAll(`__MEANING_${slug}__`, meaning);
+  for (const [slug, cases] of Object.entries(EXAMPLES)) html = html.replace(`__EXAMPLES_${slug}__`, cases.map((c) => `<li>${c}</li>`).join(""));
   html = html.replace("__BADGE_NOTE__", await badgeNote(env, url.searchParams.get("t")));
   return new Response(html, {
     headers: {

@@ -85,14 +85,37 @@ details p{margin:10px 0 0}
 footer{padding:40px 0 56px;font-size:14px;color:var(--ink-soft)}
 footer h2{font-size:17px;color:var(--ink);margin-bottom:12px}
 footer p{margin:0 0 10px}
+.hero-badges{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 28px}
+.hero-badges img{display:block}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+.ctas .btn.quiet{padding:12px 22px;font-size:16px}
+.question{font-size:24px;line-height:1.35;font-weight:600;letter-spacing:-.01em;margin:0 0 28px;padding-left:16px;border-left:4px solid var(--machine)}
+.scale{margin:0 0 28px}
+.scale-track{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--human),var(--mid) 50%,var(--machine))}
+.scale-track i{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;border:3px solid var(--ink)}
+.scale-track i:first-child{margin-left:0}
+.scale-names{position:relative;height:22px;margin-top:12px;font-size:14px;font-weight:600}
+.scale-names span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.scale-names span:first-child{transform:none}
+.scale-ends{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-soft);margin-top:2px}
+.cards{display:grid;gap:14px;margin:0 0 20px}
+.card{background:#fff;border:1px solid var(--line);border-top:4px solid var(--mid);border-radius:10px;padding:18px}
+.card.human-only{border-top-color:var(--human)}
+.card.mostly-ai{border-top-color:var(--machine)}
+.card img{display:block;margin:0 0 14px;max-width:100%;height:auto}
+.card p{font-size:16px;margin:0 0 10px}
+.card ul{margin:0;padding-left:18px;font-size:15px;color:var(--ink-soft)}
+.card li{margin:0 0 6px}
+.tie{font-weight:600;margin:0 0 8px}
 @media (max-width:420px){nav .wrap{gap:6px 12px}nav .brand{font-size:12px;flex-basis:100%}nav a:not(.brand){font-size:14px}}
-@media (min-width:640px){h1{font-size:48px}section{padding:72px 0}.labels{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:640px){h1{font-size:48px}section{padding:72px 0}.labels{grid-template-columns:repeat(3,1fr)}.cards{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <nav aria-label="Jump to">
   <div class="wrap">
     <a class="brand" href="#top">MADE OPENLY</a>
+    <a href="#labels">Labels</a>
     <a href="#get">Get a badge</a>
     <a href="#count">Count</a>
     <a href="#faq">FAQ</a>
@@ -104,8 +127,47 @@ footer p{margin:0 0 10px}
 <section class="hero">
   <div class="wrap">
     <h1>Say how it was made.</h1>
-    __BADGE_NOTE__<p class="lead">A free badge that says, openly, how much AI helped make your work.</p>
-    <a class="btn" href="#get">Get a badge</a>
+    __BADGE_NOTE__<p class="lead">A free badge for your site, repo or post that tells people how much AI helped make it. You choose the label. Your visitors are never tracked.</p>
+    <div class="hero-badges" aria-label="The three badges">
+      <a href="#labels"><img src="/badge.svg?l=human-only" width="176" height="62" alt="Made Openly: Human only"></a>
+      <a href="#labels"><img src="/badge.svg?l=human-ai" width="176" height="62" alt="Made Openly: Human + AI"></a>
+      <a href="#labels"><img src="/badge.svg?l=mostly-ai" width="176" height="62" alt="Made Openly: Mostly AI"></a>
+    </div>
+    <p class="ctas"><a class="btn" href="#get">Get a badge</a> <a class="btn quiet" href="#labels">What the labels mean</a></p>
+  </div>
+</section>
+
+<section id="labels">
+  <div class="wrap">
+    <h2>Three labels, one question</h2>
+    <p class="question">Who produced most of the final words, code or images?</p>
+    <div class="scale" aria-hidden="true">
+      <div class="scale-track"><i style="left:0"></i><i style="left:50%"></i><i style="left:85%"></i></div>
+      <div class="scale-names"><span style="left:0">Human only</span><span style="left:50%">Human + AI</span><span style="left:85%">Mostly AI</span></div>
+      <div class="scale-ends"><span>All human</span><span>All AI</span></div>
+    </div>
+    <div class="cards">
+      <article class="card human-only">
+        <img src="/badge.svg?l=human-only" width="176" height="62" alt="">
+        <h3>Human only</h3>
+        <p>__MEANING_human-only__</p>
+        <ul>__EXAMPLES_human-only__</ul>
+      </article>
+      <article class="card human-ai">
+        <img src="/badge.svg?l=human-ai" width="176" height="62" alt="">
+        <h3>Human + AI</h3>
+        <p>__MEANING_human-ai__</p>
+        <ul>__EXAMPLES_human-ai__</ul>
+      </article>
+      <article class="card mostly-ai">
+        <img src="/badge.svg?l=mostly-ai" width="176" height="62" alt="">
+        <h3>Mostly AI</h3>
+        <p>__MEANING_mostly-ai__</p>
+        <ul>__EXAMPLES_mostly-ai__</ul>
+      </article>
+    </div>
+    <p class="tie">__TIE_BREAK__</p>
+    <p class="small soft">You choose the label. It is your own statement, not a certificate. __BAR_NOTE__</p>
   </div>
 </section>
 
@@ -124,12 +186,12 @@ footer p{margin:0 0 10px}
     <h2>Get a badge</h2>
     <form id="picker" novalidate>
       <fieldset>
-        <legend>How much AI was involved? <span class="soft">You decide.</span></legend>
-        <p class="hint">__TEST__ __BAR_NOTE__</p>
+        <legend>Who produced most of the final work? <span class="soft">You decide.</span></legend>
+        <p class="hint">__TEST__ __BAR_NOTE__ <a href="#labels">Examples</a></p>
         <div class="choices labels">
-          <label class="choice"><input type="radio" name="label" value="mostly-ai"><span><b>Mostly AI</b><small>__MEANING_mostly-ai__</small></span></label>
-          <label class="choice"><input type="radio" name="label" value="human-ai" checked><span><b>Human + AI</b><small>__MEANING_human-ai__</small></span></label>
           <label class="choice"><input type="radio" name="label" value="human-only"><span><b>Human only</b><small>__MEANING_human-only__</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="human-ai" checked><span><b>Human + AI</b><small>__MEANING_human-ai__</small></span></label>
+          <label class="choice"><input type="radio" name="label" value="mostly-ai"><span><b>Mostly AI</b><small>__MEANING_mostly-ai__</small></span></label>
         </div>
       </fieldset>
       <fieldset>
@@ -198,9 +260,9 @@ footer p{margin:0 0 10px}
   <div class="wrap">
     <h2>Who wears which badge</h2>
     <div class="bars" id="bars">
-      <div class="bar-row"><span>Mostly AI</span><div class="bar-track"><div class="bar-fill" data-label="mostly-ai" style="background:var(--machine)"></div></div><span class="n" data-n="mostly-ai">0</span></div>
-      <div class="bar-row"><span>Human + AI</span><div class="bar-track"><div class="bar-fill" data-label="human-ai" style="background:var(--mid)"></div></div><span class="n" data-n="human-ai">0</span></div>
       <div class="bar-row"><span>Human only</span><div class="bar-track"><div class="bar-fill" data-label="human-only" style="background:var(--human)"></div></div><span class="n" data-n="human-only">0</span></div>
+      <div class="bar-row"><span>Human + AI</span><div class="bar-track"><div class="bar-fill" data-label="human-ai" style="background:var(--mid)"></div></div><span class="n" data-n="human-ai">0</span></div>
+      <div class="bar-row"><span>Mostly AI</span><div class="bar-track"><div class="bar-fill" data-label="mostly-ai" style="background:var(--machine)"></div></div><span class="n" data-n="mostly-ai">0</span></div>
     </div>
     <p class="total">Total: <b id="total">0</b> verified places<span id="week-growth"></span></p>
     <svg class="spark" id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"></svg>
