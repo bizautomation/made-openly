@@ -15,14 +15,15 @@ export function postJson(path, body, ip = freshIp()) {
   });
 }
 
-// Stub Turnstile siteverify: the response token "pass" succeeds, anything else fails.
+// Stub Turnstile siteverify. A token "pass-<action>" verifies for that action
+// on madeopenly.com, "pass-<action>@<host>" on another host; anything else fails.
 // Other URLs go to `other` (default: 404).
 export function mockFetch(other = () => new Response("not found", { status: 404 })) {
   const fn = vi.fn(async (input, init) => {
     const url = String(input?.url ?? input);
     if (url.startsWith("https://challenges.cloudflare.com/turnstile/")) {
-      const token = init.body.get("response");
-      return Response.json({ success: token === "pass" });
+      const m = /^pass-([a-z]+)(?:@(.+))?$/.exec(init.body.get("response"));
+      return Response.json(m ? { success: true, action: m[1], hostname: m[2] ?? "madeopenly.com" } : { success: false });
     }
     return other(url, init);
   });

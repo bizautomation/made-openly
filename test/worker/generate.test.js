@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanDeclaredUrl, handleGenerate, insertBadge, placeKind } from "../../src/generate.js";
 import { call, mockFetch, postJson } from "./helpers.js";
 
-const valid = { label: "human-ai", style: "light", size: "large", variant: "robot", mascot: "robot", turnstile_token: "pass" };
+const valid = { label: "human-ai", style: "light", size: "large", variant: "robot", mascot: "robot", turnstile_token: "pass-generate" };
 
 beforeEach(() => mockFetch());
 afterEach(() => vi.unstubAllGlobals());
@@ -62,6 +62,24 @@ describe("POST /api/generate", () => {
     expect((await postJson("/api/generate", rest)).status).toBe(403);
   });
 
+  it.each([
+    ["from another form (action)", "pass-contact"],
+    ["from another site (hostname)", "pass-generate@evil.example"],
+    ["from localhost in production", "pass-generate@localhost"],
+    ["over 2048 characters", `pass-generate${"x".repeat(2048)}`],
+  ])("rejects a token %s", async (_, turnstile_token) => {
+    expect((await postJson("/api/generate", { ...valid, turnstile_token })).status).toBe(403);
+  });
+
+  it("accepts a token from the review host", async () => {
+    expect((await postJson("/api/generate", { ...valid, turnstile_token: "pass-generate@madeopenly.bizat.co" })).status).toBe(201);
+  });
+
+  it("fails closed when siteverify errors", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 500 })));
+    expect((await postJson("/api/generate", valid)).status).toBe(403);
+  });
+
   it("limits one IP to 5 per minute", async () => {
     const statuses = [];
     for (let i = 0; i < 6; i++) statuses.push((await postJson("/api/generate", valid, "198.51.100.7")).status);
@@ -89,7 +107,7 @@ describe("token conflicts", () => {
     const req = new Request("https://madeopenly.com/api/generate", {
       method: "POST",
       headers: { "CF-Connecting-IP": "192.0.2.50" },
-      body: JSON.stringify({ label: "human-ai", turnstile_token: "pass" }),
+      body: JSON.stringify({ label: "human-ai", turnstile_token: "pass-generate" }),
     });
     const res = await handleGenerate(req, env, make);
     expect(res.status).toBe(503);
