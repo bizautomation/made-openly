@@ -8,6 +8,8 @@ preview_urls = false
 routes = [
   { pattern = "madeopenly.com", custom_domain = true },
   { pattern = "www.madeopenly.com", custom_domain = true },
+  # Owner-only review mirror, behind Cloudflare Access, never indexed.
+  { pattern = "madeopenly.bizat.co", custom_domain = true },
 ]
 
 # Self-hosted Inter (no third-party font requests). Files here are served
