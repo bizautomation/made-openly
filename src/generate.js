@@ -33,16 +33,24 @@ export function cleanDeclaredUrl(value) {
   return u.toString();
 }
 
-export async function verifyTurnstile(secret, token) {
-  if (!secret || typeof token !== "string" || !token) return false;
-  // The visitor's IP is optional for siteverify and is deliberately not sent.
+const SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const MAX_TURNSTILE_TOKEN = 2048;
+
+// Server-side Turnstile check. Fails closed: the token must verify, come from
+// the expected form (action) and from one of our own pages (hostname).
+// The visitor's IP is optional for siteverify and is deliberately not sent.
+export async function verifyTurnstile(env, token, action) {
+  const hostnames = (env.TURNSTILE_HOSTNAMES ?? "").split(",").map((h) => h.trim()).filter(Boolean);
+  if (!env.TURNSTILE_SECRET || !hostnames.length) return false;
+  if (typeof token !== "string" || !token || token.length > MAX_TURNSTILE_TOKEN) return false;
   const body = new FormData();
-  body.append("secret", secret);
+  body.append("secret", env.TURNSTILE_SECRET);
   body.append("response", token);
   try {
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
+    const res = await fetch(SITEVERIFY, { method: "POST", body, signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return false;
     const data = await res.json();
-    return data.success === true;
+    return data.success === true && data.action === action && hostnames.includes(data.hostname);
   } catch {
     return false;
   }
@@ -98,7 +106,7 @@ export async function handleGenerate(request, env, makeToken = newToken) {
   if (!input || typeof input !== "object" || Array.isArray(input))
     return Response.json({ error: "Send the form as JSON." }, { status: 400 });
 
-  if (!(await verifyTurnstile(env.TURNSTILE_SECRET, input.turnstile_token)))
+  if (!(await verifyTurnstile(env, input.turnstile_token, "generate")))
     return Response.json({ error: "The human check failed. Please try again." }, { status: 403 });
 
   if (!(await withinLimit(env.RL_GENERATE, request)))
