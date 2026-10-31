@@ -8,6 +8,8 @@ const BATCH_DELAY_MS = 500;
 const MAX_PLACES_PER_RUN = 900; // stays under the per-invocation subrequest limit
 const MAX_HTML_BYTES = 2_000_000;
 const FETCH_TIMEOUT_MS = 10_000;
+const RETRY_WAIT_S = 2;
+const MAX_RETRY_WAIT_S = 5;
 
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -55,15 +57,25 @@ export function pageHasToken(html, token) {
 // "found" | "missing" | "unknown". Unknown (network error, timeout, 5xx, 429)
 // never deletes anything; the place is checked again next week. When given,
 // `statuses` tallies HTTP status codes (0 for no response), for count-only logs.
-async function checkPlace(url, token, statuses) {
+async function checkPlace(url, token, statuses, sleep = sleepMs) {
   const tally = (code) => statuses && (statuses[code] = (statuses[code] ?? 0) + 1);
-  let res;
-  try {
-    res = await fetch(url, {
-      headers: { "User-Agent": USER_AGENT, Accept: "text/html,*/*;q=0.5" },
+  const get = () =>
+    fetch(url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "text/html,application/xhtml+xml,*/*;q=0.8" },
       redirect: "follow",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
+  let res;
+  try {
+    res = await get();
+    // Some hosts (Substack) answer 429 to a first visit. Ask once more,
+    // after the wait they name (capped), or after 2 seconds.
+    if (res.status === 429) {
+      tally("429-first");
+      const wait = Math.min(Number(res.headers.get("Retry-After")) || RETRY_WAIT_S, MAX_RETRY_WAIT_S);
+      await sleep(wait * 1000);
+      res = await get();
+    }
   } catch {
     tally(0);
     return "unknown";
@@ -134,7 +146,7 @@ export async function runNewCheck(env, { now = new Date(), sleep = sleepMs } = {
   for (let i = 0; i < places.length; i += BATCH_SIZE) {
     if (i > 0) await sleep(BATCH_DELAY_MS);
     const batch = places.slice(i, i + BATCH_SIZE);
-    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token, summary.statuses)));
+    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token, summary.statuses, sleep)));
     for (let j = 0; j < batch.length; j++) {
       summary.checked++;
       if (results[j] === "found") {
@@ -172,7 +184,7 @@ export async function runWeeklyCheck(env, { now = new Date(), sleep = sleepMs } 
   for (let i = 0; i < places.length; i += BATCH_SIZE) {
     if (i > 0) await sleep(BATCH_DELAY_MS);
     const batch = places.slice(i, i + BATCH_SIZE);
-    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token)));
+    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token, null, sleep)));
 
     for (let j = 0; j < batch.length; j++) {
       const p = batch[j];

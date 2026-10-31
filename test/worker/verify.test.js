@@ -207,6 +207,26 @@ describe("15-minute check of new places", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("asks once more after a 429, waiting what Retry-After says (capped)", async () => {
+    await seed(T.link, { declared_url: "https://example.com/about", status: "new", created_at: daysAgo(1) });
+    const replies = [new Response("slow down", { status: 429, headers: { "Retry-After": "60" } }), page(link(T.link))];
+    pages["https://example.com/about"] = () => replies.shift();
+    const waits = [];
+    const summary = await runNewCheck(env, { now: NOW, sleep: async (ms) => waits.push(ms) });
+    expect(summary).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { "429-first": 1, 200: 1 } });
+    expect(waits).toEqual([5000]);
+  });
+
+  it("stays unknown when the retry is refused too", async () => {
+    await seed(T.link, { declared_url: "https://example.com/about", status: "new", created_at: daysAgo(1) });
+    pages["https://example.com/about"] = () => new Response("slow down", { status: 429 });
+    const waits = [];
+    const summary = await runNewCheck(env, { now: NOW, sleep: async (ms) => waits.push(ms) });
+    expect(summary).toEqual({ checked: 1, verified: 0, missing: 0, unknown: 1, statuses: { "429-first": 1, 429: 1 } });
+    expect(waits).toEqual([2000]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("does not write the weekly snapshot", async () => {
     await seed(T.link, { declared_url: "https://example.com/", status: "new", created_at: daysAgo(1) });
     pages["https://example.com/"] = () => page(link(T.link));
