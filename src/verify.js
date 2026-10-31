@@ -1,4 +1,5 @@
-// Weekly verification (SPEC.md 8.3), run by the Monday cron.
+// Verification (SPEC.md 8.3). The Monday cron runs the full weekly check;
+// a 15-minute cron verifies new places quickly, and only ever verifies.
 
 export const USER_AGENT = "MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)";
 const DAY_MS = 86_400_000;
@@ -98,6 +99,49 @@ async function deleteToken(db, token) {
   ]);
 }
 
+const NEW_WINDOW_DAYS = 7;
+const MAX_NEW_PER_RUN = 50;
+
+async function markVerified(db, token, nowIso) {
+  await db
+    .prepare("UPDATE badges SET status = 'verified', last_verified = ?, first_verified = COALESCE(first_verified, ?) WHERE token = ?")
+    .bind(nowIso, nowIso, token)
+    .run();
+}
+
+// Every 15 minutes: look for places not yet verified, bound or declared in the
+// last 7 days, so a new badge counts within minutes instead of by next Monday.
+// It never deletes, releases or snapshots; that stays with the weekly check.
+export async function runNewCheck(env, { now = new Date(), sleep = sleepMs } = {}) {
+  const db = env.DB;
+  const nowIso = now.toISOString();
+  const since = new Date(now.getTime() - NEW_WINDOW_DAYS * DAY_MS).toISOString();
+  const summary = { checked: 0, verified: 0 };
+  const { results: places } = await db
+    .prepare(
+      `SELECT token, host, declared_url FROM badges
+       WHERE status <> 'verified' AND (host IS NOT NULL OR declared_url IS NOT NULL)
+         AND COALESCE(bound_at, created_at) >= ?
+       ORDER BY COALESCE(bound_at, created_at) DESC LIMIT ?`,
+    )
+    .bind(since, MAX_NEW_PER_RUN)
+    .all();
+
+  for (let i = 0; i < places.length; i += BATCH_SIZE) {
+    if (i > 0) await sleep(BATCH_DELAY_MS);
+    const batch = places.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token)));
+    for (let j = 0; j < batch.length; j++) {
+      summary.checked++;
+      if (results[j] === "found") {
+        await markVerified(db, batch[j].token, nowIso);
+        summary.verified++;
+      }
+    }
+  }
+  return summary;
+}
+
 export async function runWeeklyCheck(env, { now = new Date(), sleep = sleepMs } = {}) {
   const db = env.DB;
   const nowIso = now.toISOString();
@@ -132,10 +176,7 @@ export async function runWeeklyCheck(env, { now = new Date(), sleep = sleepMs } 
       summary.checked++;
       if (result === "found") {
         // 3. Found: verified (this also clears a flag).
-        await db
-          .prepare("UPDATE badges SET status = 'verified', last_verified = ?, first_verified = COALESCE(first_verified, ?) WHERE token = ?")
-          .bind(nowIso, nowIso, p.token)
-          .run();
+        await markVerified(db, p.token, nowIso);
         summary.verified++;
       } else if (result === "missing" && p.first_verified) {
         // 4. Removed from a verified place: that is the opt-out.

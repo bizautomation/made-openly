@@ -31,7 +31,8 @@ database_id = "8b865803-b237-4d15-a96e-e63af9f16be4"
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["0 2 * * 1"] # Mondays 02:00 UTC, weekly verification (SPEC.md 8.3)
+# Mondays 02:00 UTC: weekly verification. Every 15 minutes: first check of new places (SPEC.md 8.3).
+crons = ["0 2 * * 1", "*/15 * * * *"]
 
 # Rate limits (SPEC.md 9). The binding only supports 10 s or 60 s windows,
 # so these are per-minute limits; longer windows are zone WAF rules.

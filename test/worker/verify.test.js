@@ -1,7 +1,7 @@
 import { createScheduledController, createExecutionContext, env, waitOnExecutionContext } from "cloudflare:test";
 import worker from "../../src/index.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { USER_AGENT, decodeCamoUrls, isoWeek, pageHasToken, runWeeklyCheck } from "../../src/verify.js";
+import { USER_AGENT, decodeCamoUrls, isoWeek, pageHasToken, runNewCheck, runWeeklyCheck } from "../../src/verify.js";
 import { mockFetch } from "./helpers.js";
 
 const NOW = new Date("2026-11-02T02:00:00Z");
@@ -178,5 +178,50 @@ describe("batches and snapshot", () => {
     await worker.scheduled(createScheduledController({ cron: "0 2 * * 1" }), env, ctx);
     await waitOnExecutionContext(ctx);
     expect(await row(T.link)).toBeNull();
+  });
+});
+
+describe("15-minute check of new places", () => {
+  const runNew = () => runNewCheck(env, { now: NOW, sleep: async () => {} });
+  const link = (t) => `<a href="https://madeopenly.com/?t=${t}">badge</a>`;
+
+  it("verifies a new place found within 7 days", async () => {
+    await seed(T.link, { declared_url: "https://example.com/about", status: "new", created_at: daysAgo(1) });
+    pages["https://example.com/about"] = () => page(link(T.link));
+    expect(await runNew()).toEqual({ checked: 1, verified: 1 });
+    expect(await row(T.link)).toMatchObject({ status: "verified", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
+  });
+
+  it("never deletes or releases, even when the badge is missing", async () => {
+    await seed(T.link, { host: "example.com", status: "bound", bound_at: daysAgo(2) });
+    expect(await runNew()).toEqual({ checked: 1, verified: 0 });
+    expect(await row(T.link)).toMatchObject({ host: "example.com", status: "bound" });
+    expect(await days(T.link)).toBe(1);
+  });
+
+  it("skips verified places, places older than 7 days and unplaced tokens", async () => {
+    await seed(T.link, { host: "a.example", status: "verified", first_verified: daysAgo(1), bound_at: daysAgo(1) });
+    await seed(T.img, { host: "b.example", status: "bound", bound_at: daysAgo(8) });
+    await seed(T.camo, { status: "new", created_at: daysAgo(1) });
+    expect(await runNew()).toEqual({ checked: 0, verified: 0 });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("does not write the weekly snapshot", async () => {
+    await seed(T.link, { declared_url: "https://example.com/", status: "new", created_at: daysAgo(1) });
+    pages["https://example.com/"] = () => page(link(T.link));
+    await runNew();
+    expect((await env.DB.prepare("SELECT COUNT(*) AS n FROM weekly_counts").first()).n).toBe(0);
+  });
+
+  it("is wired to the 15-minute cron, separate from the weekly one", async () => {
+    await seed(T.link, { declared_url: "https://example.com/", status: "new", created_at: daysAgo(1) });
+    await seed(T.img, { status: "new", created_at: "2020-01-01T00:00:00Z" });
+    pages["https://example.com/"] = () => page(link(T.link));
+    const ctx = createExecutionContext();
+    await worker.scheduled(createScheduledController({ cron: "*/15 * * * *" }), env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect((await row(T.link)).status).toBe("verified");
+    expect(await row(T.img)).not.toBeNull(); // weekly cleanup did not run
   });
 });

@@ -25,6 +25,7 @@ describe("privacy", () => {
   it("logs counts and HTTP statuses only", () => {
     const logs = src.flatMap(([f, text]) => [...text.matchAll(/console\.\w+\(([^)]*)\)/g)].map((m) => `${f}: ${m[1]}`));
     expect(logs).toEqual([
+      'src/index.js: "new check", JSON.stringify(summary',
       'src/index.js: "weekly check", JSON.stringify(summary',
       'src/mail.js: "mail failed", res.status',
       'src/mail.js: "mail failed", "network"',

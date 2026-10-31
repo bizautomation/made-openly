@@ -2,9 +2,9 @@ import { badge, labelText, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
 import { TOKEN_PATH, handleLiveBadge } from "./live.js";
 import { handleStats } from "./stats.js";
-import { runWeeklyCheck } from "./verify.js";
+import { runNewCheck, runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
-import { handleList, handleReport, handleReview, sendReviewEmail } from "./moderation.js";
+import { handleList, handleReport, handleReview, purgeStats, sendReviewEmail } from "./moderation.js";
 import pageHtml from "./page.html";
 import registry from "../mascots/registry.json";
 import { BAR_NOTE, EXAMPLES, MEANINGS, TEST, TIE_BREAK } from "./labels.js";
@@ -119,6 +119,8 @@ function route(request, env, ctx, url) {
   return new Response("Not found", { status: 404 });
 }
 
+export const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -135,6 +137,13 @@ export default {
   },
 
   async scheduled(controller, env, ctx) {
+    if (controller.cron === NEW_CHECK_CRON) {
+      const summary = await runNewCheck(env);
+      // A new verified place should show on the counter now, not in an hour.
+      if (summary.verified) await purgeStats(env);
+      if (summary.checked) console.log("new check", JSON.stringify(summary)); // counts only
+      return;
+    }
     const summary = await runWeeklyCheck(env);
     summary.to_review = await sendReviewEmail(env);
     console.log("weekly check", JSON.stringify(summary)); // counts only
