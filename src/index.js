@@ -91,6 +91,14 @@ async function badgeNote(env, token) {
 export const REVIEW_HOSTS = ["madeopenly.bizat.co"];
 const NO_INDEX = "noindex, nofollow, noarchive, noimageindex, noai, noimageai";
 
+// HTTPS only. Plain http is redirected (308 keeps the method and body of a
+// POST), and browsers are told to use https from then on.
+const HSTS = "max-age=31536000; includeSubDomains";
+function toHttps(url, method) {
+  url.protocol = "https:";
+  return new Response(null, { status: method === "GET" || method === "HEAD" ? 301 : 308, headers: { Location: url.toString() } });
+}
+
 // Every route on every host.
 function route(request, env, ctx, url) {
   const { pathname } = url;
@@ -114,13 +122,15 @@ function route(request, env, ctx, url) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (!REVIEW_HOSTS.includes(url.hostname)) return route(request, env, ctx, url);
-    if (url.pathname === "/robots.txt")
-      return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX } });
+    if (url.protocol === "http:" && url.hostname !== "localhost") return toHttps(url, request.method);
+    const review = REVIEW_HOSTS.includes(url.hostname);
+    if (review && url.pathname === "/robots.txt")
+      return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX, "Strict-Transport-Security": HSTS } });
     // Copy so the headers are writable (cached and JSON responses are immutable).
     const original = await route(request, env, ctx, url);
     const res = new Response(original.body, original);
-    res.headers.set("X-Robots-Tag", NO_INDEX);
+    res.headers.set("Strict-Transport-Security", HSTS);
+    if (review) res.headers.set("X-Robots-Tag", NO_INDEX);
     return res;
   },
 
