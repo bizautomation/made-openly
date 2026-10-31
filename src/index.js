@@ -92,11 +92,14 @@ async function badgeNote(env, token) {
 export const REVIEW_HOSTS = ["madeopenly.bizat.co"];
 const NO_INDEX = "noindex, nofollow, noarchive, noimageindex, noai, noimageai";
 
-// HTTPS only. Plain http is redirected (308 keeps the method and body of a
-// POST), and browsers are told to use https from then on.
+// HTTPS only, and one host: plain http and www.madeopenly.com go to
+// https://madeopenly.com in a single hop (308 keeps the method and body of a
+// POST). Browsers are told to use https from then on.
 const HSTS = "max-age=31536000; includeSubDomains";
-function toHttps(url, method) {
+const CANONICAL_HOST = { "www.madeopenly.com": "madeopenly.com" };
+function canonical(url, method) {
   url.protocol = "https:";
+  url.hostname = CANONICAL_HOST[url.hostname] ?? url.hostname;
   return new Response(null, { status: method === "GET" || method === "HEAD" ? 301 : 308, headers: { Location: url.toString() } });
 }
 
@@ -125,7 +128,7 @@ export const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.protocol === "http:" && url.hostname !== "localhost") return toHttps(url, request.method);
+    if ((url.protocol === "http:" && url.hostname !== "localhost") || url.hostname in CANONICAL_HOST) return canonical(url, request.method);
     const review = REVIEW_HOSTS.includes(url.hostname);
     if (review && url.pathname === "/robots.txt")
       return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX, "Strict-Transport-Security": HSTS } });
