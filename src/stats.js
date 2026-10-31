@@ -5,10 +5,14 @@ import { isoWeek } from "./verify.js";
 export const KINDS = ["site", "repo", "post", "product"];
 const CACHE_SECONDS = 3600;
 const DAY_MS = 86_400_000;
+const LISTED_CAP = 200; // newest first; the /places page has the rest
 
 const zeroKinds = () => Object.fromEntries(KINDS.map((k) => [k, 0]));
 
 // The public name of a place: its declared address without the scheme, or its host.
+// Where it lives. Declared addresses are https-only (generate.js).
+export const placeUrl = (r) => r.declared_url ?? `https://${r.host}/`;
+
 export const placeName = (r) => (r.declared_url ? r.declared_url.replace(/^https:\/\//, "").replace(/\/$/, "") : r.host);
 
 export async function buildStats(db, { now = new Date(), since = null } = {}) {
@@ -48,10 +52,14 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
     .prepare(
       `SELECT host, declared_url, label, place_kind, first_verified FROM badges
        WHERE status = 'verified' AND listed = 'yes' AND first_verified >= ?
-       ORDER BY first_verified, token`,
+       ORDER BY first_verified DESC, token LIMIT ?`,
     )
-    .bind(sinceIso)
+    .bind(sinceIso, LISTED_CAP)
     .all();
+  const { n: listedTotal } = await db
+    .prepare("SELECT COUNT(*) AS n FROM badges WHERE status = 'verified' AND listed = 'yes' AND first_verified >= ?")
+    .bind(sinceIso)
+    .first();
 
   return {
     updated: now.toISOString().replace(/\.\d{3}Z$/, "Z"),
@@ -61,7 +69,8 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
     by_label_kind: byLabelKind,
     weekly: weekly.map((w) => ({ week: w.week, verified: w.verified })),
     new_last_7_days: newLast7,
-    listed: listedRows.map((r) => ({ place: placeName(r), label: r.label, kind: r.place_kind, since: r.first_verified.slice(0, 10) })),
+    listed_total: listedTotal,
+    listed: listedRows.map((r) => ({ place: placeName(r), url: placeUrl(r), label: r.label, kind: r.place_kind, since: r.first_verified.slice(0, 10) })),
   };
 }
 
