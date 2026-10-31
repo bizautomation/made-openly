@@ -57,7 +57,7 @@ async function readJson(request) {
 }
 
 // The cached /stats.json would show a reported place for up to an hour; drop it.
-const purgeStats = (env) => (env.STATS_CACHE === "off" ? null : caches.default.delete(new Request(`${ORIGIN}/stats.json`)));
+export const purgeStats = (env) => (env.STATS_CACHE === "off" ? null : caches.default.delete(new Request(`${ORIGIN}/stats.json`)));
 
 // POST /api/list {token}: a verified place asks to be named.
 export async function handleList(request, env) {
@@ -71,7 +71,7 @@ export async function handleList(request, env) {
   const row = await env.DB.prepare("SELECT status, listed FROM badges WHERE token = ?").bind(input.token).first();
   if (!row) return Response.json({ error: "We couldn't find that badge." }, { status: 404 });
   if (row.status !== "verified")
-    return Response.json({ error: "Your badge isn't verified yet. The check runs every Monday." }, { status: 409 });
+    return Response.json({ error: "Your badge isn't verified yet. New badges are checked every 15 minutes, so try again soon." }, { status: 409 });
   if (row.listed === "removed") return Response.json({ error: "This place can't be named on the list." }, { status: 409 });
 
   await env.DB.prepare("UPDATE badges SET listed = 'pending' WHERE token = ? AND listed = 'no'").bind(input.token).run();

@@ -275,7 +275,7 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 6. `INSERT OR IGNORE INTO daily (token, day)` for today. One row per token per day, however many loads.
 7. Respond with `Content-Type: image/svg+xml`, `Cache-Control: public, max-age=300` (short, so loads keep reaching the Worker).
 
-### 8.3 Weekly verification (Cron, Mondays 02:00 UTC)
+### 8.3 Verification (Cron, Mondays 02:00 UTC, plus a first check every 15 minutes)
 
 For every token with a `host` or a `declared_url`:
 
@@ -287,6 +287,8 @@ For every token with a `host` or a `declared_url`:
 6. **Created more than 30 days ago and never bound or declared:** delete it (cleans up bot-generated tokens).
 
 Run in batches with a short delay between fetches. Use a polite `User-Agent` such as `MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)`.
+
+**First check every 15 minutes** (Cron `*/15 * * * *`). So a new badge counts within minutes instead of by next Monday, a second pass looks at places not yet verified whose `bound_at` (or `created_at`, for a declared address) is within the last 7 days, at most 50 per run, newest first. It runs step 3 only: it never deletes, releases or writes the weekly snapshot, which stay with the Monday check. When it verifies a place it purges the cached `/stats.json`. Decided by the owner, 1 Nov 2026.
 
 ### 8.4 Place types
 
