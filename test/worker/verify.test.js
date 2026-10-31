@@ -188,13 +188,13 @@ describe("15-minute check of new places", () => {
   it("verifies a new place found within 7 days", async () => {
     await seed(T.link, { declared_url: "https://example.com/about", status: "new", created_at: daysAgo(1) });
     pages["https://example.com/about"] = () => page(link(T.link));
-    expect(await runNew()).toEqual({ checked: 1, verified: 1 });
+    expect(await runNew()).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { 200: 1 } });
     expect(await row(T.link)).toMatchObject({ status: "verified", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
   });
 
   it("never deletes or releases, even when the badge is missing", async () => {
     await seed(T.link, { host: "example.com", status: "bound", bound_at: daysAgo(2) });
-    expect(await runNew()).toEqual({ checked: 1, verified: 0 });
+    expect(await runNew()).toEqual({ checked: 1, verified: 0, missing: 1, unknown: 0, statuses: { 404: 1 } });
     expect(await row(T.link)).toMatchObject({ host: "example.com", status: "bound" });
     expect(await days(T.link)).toBe(1);
   });
@@ -203,7 +203,7 @@ describe("15-minute check of new places", () => {
     await seed(T.link, { host: "a.example", status: "verified", first_verified: daysAgo(1), bound_at: daysAgo(1) });
     await seed(T.img, { host: "b.example", status: "bound", bound_at: daysAgo(8) });
     await seed(T.camo, { status: "new", created_at: daysAgo(1) });
-    expect(await runNew()).toEqual({ checked: 0, verified: 0 });
+    expect(await runNew()).toEqual({ checked: 0, verified: 0, missing: 0, unknown: 0, statuses: {} });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
