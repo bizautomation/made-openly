@@ -11,6 +11,11 @@ describe("GET /", () => {
     expect(res.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
     expect(res.headers.get("Set-Cookie")).toBeNull();
     expect(res.headers.get("Content-Security-Policy")).toContain("frame-src https://challenges.cloudflare.com");
+    // Scripts from elsewhere: only Turnstile and the cookieless Cloudflare Web Analytics beacon.
+    const csp = res.headers.get("Content-Security-Policy");
+    expect(csp).toContain("script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com;");
+    expect(csp).toContain("connect-src 'self' https://cloudflareinsights.com;");
+    expect(csp).not.toMatch(/google|gtm|doubleclick|facebook/i);
     const html = await res.text();
     const order = ['class="hero"', 'id="why"', 'id="get"', 'id="count"', 'id="faq"', 'id="contact"', 'id="privacy"'].map((m) => html.indexOf(m));
     expect(order.every((i) => i > 0)).toBe(true);
