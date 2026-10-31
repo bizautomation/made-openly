@@ -80,8 +80,13 @@ pre{margin:0 0 10px;background:#fff;border:1px solid var(--line);border-radius:8
 .listed li button{margin-left:auto;font:inherit;font-size:13px;background:none;border:0;color:var(--ink-soft);text-decoration:underline;cursor:pointer;padding:0}
 details{border-bottom:1px solid var(--line);padding:14px 0}
 details:first-of-type{border-top:1px solid var(--line)}
-summary{font-weight:600;cursor:pointer;list-style-position:outside}
-details p{margin:10px 0 0}
+summary{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-weight:600;cursor:pointer;list-style:none;padding:4px 0}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";flex:none;width:28px;height:28px;margin-top:-2px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--machine);font-weight:500;font-size:18px;line-height:26px;text-align:center}
+details[open]>summary::after{content:"\2212"}
+summary:hover::after{border-color:var(--machine)}
+summary:focus-visible{outline:2px solid var(--machine);outline-offset:4px;border-radius:4px}
+details p{margin:10px 44px 0 0;color:var(--ink-soft)}
 footer{padding:40px 0 56px;font-size:14px;color:var(--ink-soft)}
 footer h2{font-size:17px;color:var(--ink);margin-bottom:12px}
 footer p{margin:0 0 10px}
