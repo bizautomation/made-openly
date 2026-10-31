@@ -2,6 +2,7 @@ import { badge, labelText, parseSettings } from "./badge.js";
 import { handleGenerate } from "./generate.js";
 import { TOKEN_PATH, handleLiveBadge } from "./live.js";
 import { handleStats } from "./stats.js";
+import { handlePlaces } from "./places.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, purgeStats, sendReviewEmail } from "./moderation.js";
@@ -80,6 +81,17 @@ async function page(env, url) {
   });
 }
 
+// /places shares the home page's styles, nav and footer, cut from page.html.
+const between = (start, end) => pageHtml.slice(pageHtml.indexOf(start), pageHtml.indexOf(end) + end.length);
+const SHELL = {
+  head: pageHtml
+    .slice(0, pageHtml.indexOf("</style>"))
+    .replace(/<title>.*<\/title>/, "<title>Places wearing Made Openly</title>")
+    .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="Verified places that wear the Made Openly badge and asked to be named.">'),
+  nav: between("<nav", "</nav>").replaceAll('href="#', 'href="/#'),
+  footer: between('<footer id="privacy">', "</footer>"),
+};
+
 async function badgeNote(env, token) {
   if (!token || !/^[A-Za-z0-9]{16,64}$/.test(token)) return "";
   const row = await env.DB.prepare("SELECT label FROM badges WHERE token = ?").bind(token).first();
@@ -89,7 +101,7 @@ async function badgeNote(env, token) {
 
 // Private review mirror for the owner (behind Cloudflare Access). Same Worker,
 // but nothing on it may be indexed, followed or used for AI training.
-export const REVIEW_HOSTS = ["madeopenly.bizat.co"];
+const REVIEW_HOSTS = ["madeopenly.bizat.co"];
 const NO_INDEX = "noindex, nofollow, noarchive, noimageindex, noai, noimageai";
 
 // HTTPS only, and one host: plain http and www.madeopenly.com go to
@@ -110,6 +122,7 @@ function route(request, env, ctx, url) {
   const method = request.method === "HEAD" ? "GET" : request.method;
 
   if (method === "GET" && pathname === "/") return page(env, url);
+  if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
   if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
   if (method === "POST" && pathname === "/api/list") return handleList(request, env);
@@ -123,7 +136,7 @@ function route(request, env, ctx, url) {
   return new Response("Not found", { status: 404 });
 }
 
-export const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
+const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
 
 export default {
   async fetch(request, env, ctx) {

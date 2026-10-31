@@ -62,9 +62,11 @@ describe("/stats.json", () => {
       ],
       new_last_7_days: 3,
       // Only listed = 'yes': pending, reported and removed places are hidden but still counted.
+      listed_total: 2,
+      // Newest first.
       listed: [
-        { place: "bizat.co", label: "mostly-ai", kind: "site", since: "2026-10-26" },
-        { place: "daemon.substack.com/p/one", label: "human-ai", kind: "post", since: "2026-11-02" },
+        { place: "daemon.substack.com/p/one", url: "https://daemon.substack.com/p/one", label: "human-ai", kind: "post", since: "2026-11-02" },
+        { place: "bizat.co", url: "https://bizat.co/", label: "mostly-ai", kind: "site", since: "2026-10-26" },
       ],
     });
   });

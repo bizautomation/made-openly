@@ -339,9 +339,12 @@ A **verified place**: one token, found at its place by the weekly check. Each pl
   "by_label_kind": { "mostly-ai": { "site": 0, "repo": 0, "post": 0, "product": 0 } },
   "weekly": [ { "week": "2026-W45", "verified": 0 } ],
   "new_last_7_days": 0,
-  "listed": [ { "place": "example.com", "label": "human-ai", "kind": "site", "since": "2026-11-02" } ]
+  "listed_total": 1,
+  "listed": [ { "place": "example.com", "url": "https://example.com/", "label": "human-ai", "kind": "site", "since": "2026-11-02" } ]
 }
 ```
+
+`listed` is newest first and holds at most 200 places; `listed_total` is the full count. The `/places` page shows them all (owner, 1 Nov 2026).
 
 `weekly` comes from `weekly_counts` (one snapshot per weekly run), not from the current `badges` rows.
 
@@ -351,7 +354,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first verified sinc
 
 - Verified places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay).
 - Total, with a weekly growth line.
-- The opt-in named list.
+- The opt-in named list as a teaser: the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
 - One plain line under the counter: **"This counts places wearing the badge, not visitors. Each place counts once a day, and only if we can find the badge there."**
 
 ---
@@ -368,6 +371,18 @@ One page, mobile-first, one column on phones. A small jump menu at the top. Sect
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
 8. **Privacy** (small footer, about 14 px, not tiny). Section 11.2.
+
+### 11.3 The `/places` page (owner, 1 Nov 2026)
+
+A second page, served by the Worker and readable without script, with the same nav, styles and privacy footer as the main page.
+
+- Every named place (`status='verified'`, `listed='yes'`), newest first, 50 to a page with a **Show more** link.
+- Filter chips by label and by kind; each filter has its own address (`/places?l=mostly-ai&k=repo`).
+- Each row: a bar in the label colour, the place name linking to the place, then label, kind and the date first verified.
+- Links to listed places open in a new tab with `rel="ugc nofollow noopener"`. The list is user-submitted, so it passes no search credit.
+- **Report** lives in a small "⋯" menu on each row (section 12).
+- No favicons, screenshots or other images fetched from listed places.
+- A closing line links to the "Ask to be named" form on the main page.
 
 ### Style
 
@@ -409,7 +424,7 @@ Only the public **named list** is moderated. The **counts are never moderated**:
 1. Listing is opt-in and off by default (`listed='no'`).
 2. Only places with `status='verified'` can ask to be listed (`POST /api/list`) → `listed='pending'`.
 3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`.
-4. Every listed place shows a small **Report** link → `listed='reported'`, hidden until the owner reviews it. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
+4. Every listed place on `/places` shows a small **Report** action → `listed='reported'`, hidden until the owner reviews it. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
 5. A removed place keeps counting; it is only hidden from the list.
 6. Review links are signed (HMAC-SHA256 with the `ADMIN_SIGNING_KEY` secret) and expire after 14 days. A link only acts while the place is still in the state it was sent for. Mail goes through Resend from `we@madeopenly.com` to the owner only (`ADMIN_EMAIL` secret). Decided by the owner, 29 Oct 2026.
 

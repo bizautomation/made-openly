@@ -74,10 +74,14 @@ pre{margin:0 0 10px;background:#fff;border:1px solid var(--line);border-radius:8
 .total{font-size:20px;margin:0 0 8px}
 .total b{font-size:32px}
 .spark{display:block;width:100%;height:60px;margin:0 0 16px}
-.listed{list-style:none;margin:0 0 16px;padding:0}
-.listed li{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
-.listed li .place{font-weight:600;word-break:break-all}
-.listed li button{margin-left:auto;font:inherit;font-size:13px;background:none;border:0;color:var(--ink-soft);text-decoration:underline;cursor:pointer;padding:0}
+.named-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px;margin:28px 0 12px}
+.named-head h3{margin:0}
+.named-head a{font-size:15px;font-weight:600;text-decoration:none}
+.listed{list-style:none;margin:0 0 16px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.listed li{background:#fff;border:1px solid var(--line);border-top:4px solid var(--line);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--ink-soft);min-width:0}
+.listed li.soft{background:none;border:0;padding:0;font-size:15px}
+.listed li a{display:block;font-size:15px;font-weight:600;color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.listed li a:hover{color:var(--machine)}
 details{border-bottom:1px solid var(--line);padding:14px 0}
 details:first-of-type{border-top:1px solid var(--line)}
 summary{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;font-weight:600;cursor:pointer;list-style:none;padding:4px 0}
@@ -123,6 +127,7 @@ footer p{margin:0 0 10px}
     <a href="#labels">Labels</a>
     <a href="#get">Get a badge</a>
     <a href="#count">Count</a>
+    <a href="/places">Places</a>
     <a href="#faq">FAQ</a>
     <a href="#contact">Contact</a>
   </div>
@@ -273,9 +278,8 @@ footer p{margin:0 0 10px}
     <svg class="spark" id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"></svg>
     <p class="soft small">This counts places wearing the badge, not visitors. Each place counts once a day, and only if we can find the badge there.</p>
 
-    <h3 style="margin-top:28px">Places that asked to be named</h3>
+    <div class="named-head"><h3>Places that asked to be named</h3><a id="see-all" href="/places">See all places →</a></div>
     <ul class="listed" id="listed"><li class="soft">None yet.</li></ul>
-    <p class="error" id="report-msg" role="status"></p>
     <details id="ask-named">
       <summary>Wearing a verified badge? Ask to be named</summary>
       <form id="list-form" novalidate>
@@ -354,6 +358,7 @@ const MASCOTS = __MASCOTS__;
 const ORIGIN = "https://madeopenly.com";
 const DIM = { small: [88, 31], large: [176, 62] };
 const TEXT = { "mostly-ai": "Mostly AI", "human-ai": "Human + AI", "human-only": "Human only" };
+const COLOR = { "mostly-ai": "var(--machine)", "human-ai": "var(--mid)", "human-only": "var(--human)" };
 const $ = (id) => document.getElementById(id);
 const picker = $("picker");
 
@@ -503,20 +508,17 @@ async function loadStats() {
     const pts = w.map((x, i) => `${((i / (w.length - 1)) * 296 + 2).toFixed(1)},${(56 - (x.verified / top) * 52).toFixed(1)}`).join(" ");
     $("spark").innerHTML = `<polyline points="${pts}" fill="none" stroke="#0F766E" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
   }
-  if (s.listed.length)
-    $("listed").innerHTML = s.listed.map((p) =>
-      `<li><span class="place">${esc(p.place)}</span><span class="soft">${TEXT[p.label] || ""} · ${esc(p.kind)}</span><button type="button" data-report="${esc(p.place)}">Report</button></li>`).join("");
+  // The newest six as cards; the full list, filters and Report live on /places.
+  if (s.listed.length) {
+    $("listed").innerHTML = s.listed.slice(0, 6).map((p) =>
+      `<li style="border-top-color:${COLOR[p.label] || "var(--line)"}"><a href="${esc(p.url)}" rel="ugc nofollow noopener" target="_blank">${esc(p.place)}</a>${TEXT[p.label] || ""} · ${esc(p.kind)}</li>`).join("");
+    $("see-all").textContent = `See all ${s.listed_total} →`;
+  }
 }
 loadStats();
 
-$("listed").addEventListener("click", async (e) => {
-  const b = e.target.closest("[data-report]");
-  if (!b) return;
-  const { ok, data } = await post("/api/report", { place: b.dataset.report });
-  $("report-msg").className = ok ? "ok" : "error";
-  $("report-msg").textContent = ok ? "Thanks. That place is hidden until we review it." : data.error || "That didn't send. Please try again.";
-  if (ok) b.closest("li").remove();
-});
+// A link to /#ask-named opens the form.
+if (location.hash === "#ask-named") $("ask-named").open = true;
 
 $("list-form").addEventListener("submit", async (e) => {
   e.preventDefault();
