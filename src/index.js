@@ -44,12 +44,13 @@ function previewBadge(url) {
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  // Cloudflare Web Analytics (cookieless) is the only script from elsewhere besides Turnstile.
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
   "frame-src https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' https://cloudflareinsights.com",
   "base-uri 'none'",
   "form-action 'self'",
   "frame-ancestors 'none'",

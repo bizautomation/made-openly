@@ -27,7 +27,7 @@ The question moves from purity (did a machine touch this?) to character (is the 
 ## 2. Non-goals (do not build these at launch)
 
 - Accounts, logins, sign-up, email capture.
-- Cookies, analytics scripts, tracking pixels, fingerprinting.
+- Cookies, cookie-based analytics, tracking pixels, fingerprinting. The one exception is Cloudflare Web Analytics on the page itself: it sets no cookies and uses no visitor ID, so no consent banner is needed. It never runs on the badge. Decided by the owner, 1 Nov 2026.
 - Storing IP addresses (rate limiting may read them in memory only).
 - A JavaScript badge tier. Image badge only.
 - User uploads of mascots or images.
@@ -391,7 +391,8 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 ### 11.2 Privacy note (a few short paragraphs)
 
 - The badge records the place it appears (site, repo or page address), the badge chosen, and the days it was seen. Nothing about the people who visit that place.
-- No cookies, no tracking scripts, no IP addresses stored.
+- No cookies, and nothing stored on your device. No IP addresses stored by us.
+- We count visits to this page with Cloudflare Web Analytics. It sets no cookies, uses no visitor ID and does not follow you to other sites. The badge itself never runs it.
 - The contact form keeps your name, email and message, used only to reply.
 - Turnstile, a Cloudflare service, protects the forms.
 - To delete a badge's data, remove the badge; it is deleted at the next weekly check. For anything else, use the contact form.
