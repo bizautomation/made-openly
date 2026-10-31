@@ -53,8 +53,10 @@ export function pageHasToken(html, token) {
 }
 
 // "found" | "missing" | "unknown". Unknown (network error, timeout, 5xx, 429)
-// never deletes anything; the place is checked again next week.
-async function checkPlace(url, token) {
+// never deletes anything; the place is checked again next week. When given,
+// `statuses` tallies HTTP status codes (0 for no response), for count-only logs.
+async function checkPlace(url, token, statuses) {
+  const tally = (code) => statuses && (statuses[code] = (statuses[code] ?? 0) + 1);
   let res;
   try {
     res = await fetch(url, {
@@ -63,8 +65,10 @@ async function checkPlace(url, token) {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
   } catch {
+    tally(0);
     return "unknown";
   }
+  tally(res.status);
   if (res.status === 404 || res.status === 410) return "missing";
   if (!res.ok) return "unknown";
   let html;
@@ -116,7 +120,7 @@ export async function runNewCheck(env, { now = new Date(), sleep = sleepMs } = {
   const db = env.DB;
   const nowIso = now.toISOString();
   const since = new Date(now.getTime() - NEW_WINDOW_DAYS * DAY_MS).toISOString();
-  const summary = { checked: 0, verified: 0 };
+  const summary = { checked: 0, verified: 0, missing: 0, unknown: 0, statuses: {} };
   const { results: places } = await db
     .prepare(
       `SELECT token, host, declared_url FROM badges
@@ -130,13 +134,13 @@ export async function runNewCheck(env, { now = new Date(), sleep = sleepMs } = {
   for (let i = 0; i < places.length; i += BATCH_SIZE) {
     if (i > 0) await sleep(BATCH_DELAY_MS);
     const batch = places.slice(i, i + BATCH_SIZE);
-    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token)));
+    const results = await Promise.all(batch.map((p) => checkPlace(p.declared_url ?? `https://${p.host}/`, p.token, summary.statuses)));
     for (let j = 0; j < batch.length; j++) {
       summary.checked++;
       if (results[j] === "found") {
         await markVerified(db, batch[j].token, nowIso);
         summary.verified++;
-      }
+      } else summary[results[j]]++;
     }
   }
   return summary;
