@@ -183,7 +183,7 @@ const MANAGE_CSS = `
 `;
 
 export function managePage(shell, csp) {
-  const html = `${shell.head.replace(/<title>.*<\/title>/, "<title>Manage your badge</title>")}${MANAGE_CSS}</style>
+  const html = `${shell.head.replace(/<title>.*<\/title>/, "<title>Manage your badge</title>").replace("__HEAD_TAGS__", "")}${MANAGE_CSS}</style>
 <meta name="robots" content="noindex">
 </head>
 <body>

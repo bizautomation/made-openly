@@ -5,6 +5,7 @@ import { handleManage, handleManageList, handleRemove, handleSendKey, managePage
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
+import { HOME, headTags, robots, shareImage, sitemap } from "./share.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, purgeStats, sendReviewEmail } from "./moderation.js";
@@ -64,6 +65,7 @@ const CSP = [
 async function page(request, env, ctx, url) {
   const mascots = JSON.stringify(registry.map(({ slug, name, designer }) => ({ slug, name, designer }))).replaceAll("<", "\\u003c");
   let html = pageHtml
+    .replace("__HEAD_TAGS__", headTags(HOME))
     .replace("__TURNSTILE_SITE_KEY__", env.TURNSTILE_SITE_KEY ?? "")
     .replace("__MASCOTS__", mascots)
     .replaceAll("__TEST__", TEST)
@@ -88,13 +90,11 @@ async function page(request, env, ctx, url) {
   });
 }
 
-// /places shares the home page's styles, nav and footer, cut from page.html.
+// /places and /manage share the home page's styles, nav and footer, cut from
+// page.html. Each page fills __HEAD_TAGS__ and its own title.
 const between = (start, end) => pageHtml.slice(pageHtml.indexOf(start), pageHtml.indexOf(end) + end.length);
 const SHELL = {
-  head: pageHtml
-    .slice(0, pageHtml.indexOf("</style>"))
-    .replace(/<title>.*<\/title>/, "<title>Places wearing Made Openly</title>")
-    .replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="Verified places that wear the Made Openly badge and asked to be named.">'),
+  head: pageHtml.slice(0, pageHtml.indexOf("</style>")),
   nav: between("<nav", "</nav>").replaceAll('href="#', 'href="/#'),
   footer: between('<footer id="privacy">', "</footer>"),
 };
@@ -151,6 +151,9 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
+  if (method === "GET" && pathname === "/og.png") return shareImage(env);
+  if (method === "GET" && pathname === "/sitemap.xml") return sitemap();
+  if (method === "GET" && pathname === "/robots.txt") return robots();
   if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
   if (method === "POST" && pathname === "/api/list") return handleList(request, env);
   if (method === "POST" && pathname === "/api/report") return handleReport(request, env, ctx);
