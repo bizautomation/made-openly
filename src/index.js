@@ -150,6 +150,9 @@ function route(request, env, ctx, url) {
   const method = request.method === "HEAD" ? "GET" : request.method;
 
   if (method === "GET" && pathname === "/") return page(request, env, ctx, url);
+  // A trailing slash on a page goes to the page, keeping the query.
+  if (method === "GET" && PAGES.includes(pathname.replace(/\/$/, "")) && pathname.endsWith("/"))
+    return Response.redirect(`${url.origin}${pathname.slice(0, -1)}${url.search}`, 301);
   if (method === "GET" && pathname === "/manage") return managePage(SHELL, CSP);
   if (method === "POST" && pathname === "/api/manage") return handleManage(request, env);
   if (method === "POST" && pathname === "/api/manage/remove") return handleRemove(request, env, ctx);
@@ -168,7 +171,43 @@ function route(request, env, ctx, url) {
   const live = method === "GET" && TOKEN_PATH.exec(pathname);
   if (live) return handleLiveBadge(request, env, live[1], url, live[2]);
 
-  return new Response("Not found", { status: 404 });
+  return notFound(request);
+}
+
+const PAGES = ["/places", "/manage"];
+
+// A missing page gets a small page with the site's nav and a way home, for
+// browsers. Anything else (badges, API) keeps the plain-text answer.
+function notFound(request) {
+  if (request.method !== "GET" || !(request.headers.get("Accept") ?? "").includes("text/html"))
+    return new Response("Not found", { status: 404 });
+  const html = `${SHELL.head.replace(/<title>.*<\/title>/, "<title>Page not found</title>").replace("__HEAD_TAGS__", "")}</style>
+<meta name="robots" content="noindex">
+</head>
+<body>
+${SHELL.nav}
+<main id="top">
+<section>
+  <div class="wrap">
+    <h1>Page not found</h1>
+    <p>There is nothing at this address. <a href="/">Go to the home page</a> or <a href="/places">see the places wearing a badge</a>.</p>
+  </div>
+</section>
+</main>
+${SHELL.footer}
+</body>
+</html>
+`;
+  return new Response(html, {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
+      "Content-Security-Policy": CSP,
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
