@@ -27,6 +27,8 @@ The question to ask: **who produced most of the final words, code or images?** T
 
 For an email signature, LinkedIn or a site builder that won't take SVG, use the PNG version under "More ways to add it". It counts the same way.
 
+Wearing it somewhere? [Show us](https://github.com/bizautomation/made-openly/issues/new?template=show-where-you-wear-it.yml).
+
 No sign-up and no account. You can also save a **badge key**, which you need later to remove your place or change its listing at [madeopenly.com/manage](https://madeopenly.com/manage). For a PDF, video or app store page, download the plain badge: it has no tracking and is never counted.
 
 ## How counting works
