@@ -47,11 +47,11 @@ function percentDecode(s) {
   }
 }
 
-// True if the page carries this token in the badge link, the image src,
+// True if the page carries this token in the badge link, the image src (SVG or PNG),
 // a GitHub camo URL, or an image proxy that percent-encodes the original.
 export function pageHasToken(html, token) {
   const link = new RegExp(`madeopenly\\.com/\\?t=${token}(?![A-Za-z0-9])`);
-  const img = new RegExp(`madeopenly\\.com/b/${token}\\.svg`);
+  const img = new RegExp(`madeopenly\\.com/b/${token}\\.(svg|png)`);
   const haystacks = [html, percentDecode(html), ...decodeCamoUrls(html)];
   return haystacks.some((h) => link.test(h) || img.test(h));
 }

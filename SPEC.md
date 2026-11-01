@@ -315,7 +315,7 @@ A place is a token with a bound `host` or a `declared_url`. It counts while eith
 
 **Signal 2, the Worker check.** It looks for the token at the place:
 - **GitHub repos:** the official API, `GET https://api.github.com/repos/<owner>/<repo>/readme` with `Accept: application/vnd.github.raw`, with the optional `GITHUB_TOKEN` secret.
-- **Every other place:** fetch `declared_url` if set, otherwise `https://<host>/`, and look for the token in the badge link href (`madeopenly.com/?t=TOKEN`), the image src (`/b/TOKEN.svg`), a GitHub camo URL (hex-decoded) or a percent-encoded image proxy URL. On HTTP 429 it waits for `Retry-After` (at most 5 seconds) and asks once more.
+- **Every other place:** fetch `declared_url` if set, otherwise `https://<host>/`, and look for the token in the badge link href (`madeopenly.com/?t=TOKEN`), the image src (`/b/TOKEN.svg` or `/b/TOKEN.png`), a GitHub camo URL (hex-decoded) or a percent-encoded image proxy URL. On HTTP 429 it waits for `Retry-After` (at most 5 seconds) and asks once more.
 - Use a polite `User-Agent`: `MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)`. Fetch in batches with a short delay between them.
 - It runs every Monday at 02:00 UTC for every place, and every 15 minutes for places not yet active that were bound or declared in the last 7 days (at most 50 per run, newest first).
 
