@@ -17,13 +17,31 @@ export const placeUrl = (r) => r.declared_url ?? `https://${r.host}/`;
 
 export const placeName = (r) => (r.declared_url ? r.declared_url.replace(/^https:\/\//, "").replace(/\/$/, "") : r.host);
 
+// Counts are per place, not per token (SPEC.md 10): badges at the same
+// address count once. The key is the declared address without its scheme
+// and trailing slash, or else the bound host, lowercased and without "www.".
+const RAW_KEY = "lower(COALESCE(rtrim(substr(declared_url, 9), '/'), host))";
+export const PLACE_KEY = `CASE WHEN ${RAW_KEY} LIKE 'www.%' THEN substr(${RAW_KEY}, 5) ELSE ${RAW_KEY} END`;
+
+// A WITH clause defining `places`: one row per place among the badges that
+// match `where`. The row stands for the place: its most-seen badge (active,
+// then dormant, then declared; then the latest sighting).
+export const placesCte = (where) => `WITH ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+      PARTITION BY ${PLACE_KEY}
+      ORDER BY CASE status WHEN 'active' THEN 0 WHEN 'dormant' THEN 1 ELSE 2 END, COALESCE(last_seen, '') DESC, created_at DESC, token
+    ) AS rn
+    FROM badges WHERE (${where}) AND (host IS NOT NULL OR declared_url IS NOT NULL)
+  ), places AS (SELECT * FROM ranked WHERE rn = 1)`;
+
 export async function buildStats(db, { now = new Date(), since = null } = {}) {
   const sinceIso = since ? `${since}T00:00:00.000Z` : "";
   // Active places count. Added = active + dormant + declared ("not verified yet").
   const { results: counts } = await db
     .prepare(
-      `SELECT label, place_kind AS kind, status, COUNT(*) AS n FROM badges
-       WHERE status IN ('active', 'dormant', 'declared') AND COALESCE(first_verified, created_at) >= ?
+      `${placesCte("status IN ('active', 'dormant', 'declared')")}
+       SELECT label, place_kind AS kind, status, COUNT(*) AS n FROM places
+       WHERE COALESCE(first_verified, created_at) >= ?
        GROUP BY label, place_kind, status`,
     )
     .bind(sinceIso)
@@ -55,20 +73,20 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
 
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS).toISOString();
   const { n: newLast7 } = await db
-    .prepare("SELECT COUNT(*) AS n FROM badges WHERE status = 'active' AND first_verified >= ?")
+    .prepare(`${placesCte("status = 'active'")} SELECT COUNT(*) AS n FROM places WHERE first_verified >= ?`)
     .bind(sinceIso > weekAgo ? sinceIso : weekAgo)
     .first();
 
   const { results: listedRows } = await db
     .prepare(
-      `SELECT host, declared_url, label, place_kind, first_verified FROM badges
-       WHERE status = 'active' AND listed = 'yes' AND first_verified >= ?
-       ORDER BY first_verified DESC, token LIMIT ?`,
+      `${placesCte("status = 'active' AND listed = 'yes'")}
+       SELECT host, declared_url, label, place_kind, first_verified FROM places
+       WHERE first_verified >= ? ORDER BY first_verified DESC, token LIMIT ?`,
     )
     .bind(sinceIso, LISTED_CAP)
     .all();
   const { n: listedTotal } = await db
-    .prepare("SELECT COUNT(*) AS n FROM badges WHERE status = 'active' AND listed = 'yes' AND first_verified >= ?")
+    .prepare(`${placesCte("status = 'active' AND listed = 'yes'")} SELECT COUNT(*) AS n FROM places WHERE first_verified >= ?`)
     .bind(sinceIso)
     .first();
 
