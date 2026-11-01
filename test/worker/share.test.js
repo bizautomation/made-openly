@@ -18,6 +18,7 @@ describe("share tags (SPEC.md 11.4)", () => {
   it("are all on /, with the WebSite and Organization JSON-LD", async () => {
     const h = await head("/");
     expect(canonical(h)).toBe("https://madeopenly.com/");
+    expect(h).toContain("<title>Made Openly: a free AI disclosure badge for your site or repo</title>");
     expect(unesc(meta(h, "name", "description"))).toBe(DESCRIPTION);
     expect(meta(h, "property", "og:type")).toBe("website");
     expect(meta(h, "property", "og:site_name")).toBe("Made Openly");
