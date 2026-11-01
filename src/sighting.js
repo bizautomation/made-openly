@@ -31,10 +31,14 @@ export async function recordDay(db, token, now = new Date()) {
   if (res.meta.changes) await markSeen(db, token, now);
 }
 
-// Active places with no sighting for 30 days become dormant. They keep their
-// record and listing approval, and turn active again at the next sighting.
+// Active places with no sighting for 30 days become dormant, token places
+// and tokenless ones alike. They keep their record and listing approval, and
+// turn active again at the next sighting.
 export async function sweepDormant(db, now = new Date()) {
   const cutoff = day(new Date(now.getTime() - DORMANT_DAYS * DAY_MS));
-  const res = await db.prepare("UPDATE badges SET status = 'dormant' WHERE status = 'active' AND last_seen < ?").bind(cutoff).run();
-  return res.meta.changes;
+  const [tokens, tokenless] = await db.batch([
+    db.prepare("UPDATE badges SET status = 'dormant' WHERE status = 'active' AND last_seen < ?").bind(cutoff),
+    db.prepare("UPDATE tokenless_places SET status = 'dormant' WHERE status = 'active' AND last_seen < ?").bind(cutoff),
+  ]);
+  return tokens.meta.changes + tokenless.meta.changes;
 }

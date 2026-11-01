@@ -82,16 +82,17 @@ describe("GET /b/:token.svg", () => {
     expect((await row(token)).status).toBe("dormant");
   });
 
-  it("flags a second host and records nothing for it", async () => {
+  it("counts a second host as its own place with no badge ID and leaves the first place alone", async () => {
     const token = await seed();
     await load(token, "https://first.example/");
-    await env.DB.prepare("DELETE FROM daily WHERE token = ?").bind(token).run();
     await load(token, "https://copycat.example/");
-    expect(await row(token)).toMatchObject({ host: "first.example", status: "flagged" });
-    expect(await days(token)).toBe(0);
+    expect(await row(token)).toMatchObject({ host: "first.example", status: "active" });
+    expect(await days(token)).toBe(1);
+    const copy = await env.DB.prepare("SELECT host, label, copied FROM tokenless_places").all();
+    expect(copy.results).toEqual([{ host: "copycat.example", label: "mostly-ai", copied: 1 }]);
   });
 
-  it("keeps counting loads from the first host after a flag", async () => {
+  it("keeps counting loads from the first host of a place flagged before (old rule)", async () => {
     const token = await seed({ host: "first.example", status: "flagged", verify_method: "live" });
     await load(token, "https://first.example/about");
     expect(await days(token)).toBe(1);

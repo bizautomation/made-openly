@@ -60,6 +60,7 @@ describe("/stats.json", () => {
       added_total: 7,
       dormant_total: 1,
       unverified_total: 1,
+      no_badge_id: { total: 0, active: 0, dormant: 0, from_copied_snippet: 0, counted_once_with_badge_id: 0, maybe_counted_twice: 0 },
       by_status_label: {
         active: { "mostly-ai": 1, "human-ai": 2, "human-only": 2 },
         dormant: { "mostly-ai": 1, "human-ai": 0, "human-only": 0 },
