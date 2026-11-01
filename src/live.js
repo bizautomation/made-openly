@@ -1,9 +1,10 @@
 import { badge, neutralBadge, parseSettings } from "./badge.js";
 import { withinLimit } from "./generate.js";
 import { day, recordDay } from "./sighting.js";
+import { recordTokenless } from "./tokenless.js";
 
 export const TOKEN_PATH = /^\/b\/([A-Za-z0-9]{16,64})\.(svg|png)$/;
-const LIVE_CACHE = "public, max-age=300";
+export const LIVE_CACHE = "public, max-age=300";
 
 // Hosts that never bind a token: previews, image proxies and this site itself.
 const NO_BIND_SUFFIXES = [
@@ -87,12 +88,13 @@ export async function handleLiveBadge(request, env, token, url, format = "svg") 
     if (res.meta.changes === 0) {
       const now = await db.prepare("SELECT host FROM badges WHERE token = ?").bind(token).first();
       record = now?.host === host;
-      if (!record) await flag(db, token);
+      if (!record) await recordTokenless(db, host, row.label, { copied: true });
     }
   } else if (host && row.host !== host) {
-    // Someone copied another place's snippet.
+    // Someone copied another place's snippet. It counts for their site as a
+    // place with no token, and the original place is never touched (SPEC.md 8.6).
     record = false;
-    await flag(db, token);
+    await recordTokenless(db, host, row.label, { copied: true });
   }
 
   // A load from the place's own host is a sighting (SPEC.md 8.3). Once the
@@ -113,8 +115,6 @@ export function lookFromQuery(row, params) {
   }
   return look;
 }
-
-const flag = (db, token) => db.prepare("UPDATE badges SET status = 'flagged' WHERE token = ?").bind(token).run();
 
 const svg = (body) =>
   new Response(body, {

@@ -2,6 +2,7 @@
 // The Monday cron looks at every place; a 15-minute cron looks at new ones.
 import { markSeen, sweepDormant } from "./sighting.js";
 import { placesCte } from "./stats.js";
+import { CONFIRMED_TOKEN } from "./tokenless.js";
 
 export const USER_AGENT = "MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)";
 const DAY_MS = 86_400_000;
@@ -227,6 +228,19 @@ export async function writeWeeklySnapshot(db, week) {
        FROM places GROUP BY label, place_kind`,
     )
     .all();
+  // Places with no badge ID are sites, added to the same rows, except those
+  // a confirmed token place already counts (SPEC.md 8.6).
+  const { results: tokenless } = await db
+    .prepare(
+      `SELECT label, SUM(status = 'active') AS active, SUM(status = 'dormant') AS dormant
+       FROM tokenless_places t WHERE NOT ${CONFIRMED_TOKEN} GROUP BY label`,
+    )
+    .all();
+  for (const t of tokenless) {
+    const row = results.find((r) => r.label === t.label && r.kind === "site");
+    if (row) (row.active += t.active), (row.dormant += t.dormant);
+    else results.push({ label: t.label, kind: "site", active: t.active, dormant: t.dormant, unverified: 0 });
+  }
   const stmts = [db.prepare("DELETE FROM weekly_counts WHERE week = ?").bind(week)];
   for (const r of results)
     stmts.push(
