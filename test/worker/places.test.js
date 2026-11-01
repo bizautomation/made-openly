@@ -9,7 +9,7 @@ async function seed(rows) {
     rows.map(([token, label, kind, listed, host, declared_url, first_verified]) =>
       env.DB.prepare(
         `INSERT INTO badges (token, label, place_kind, status, listed, host, declared_url, first_verified, style, size, variant, created_at)
-         VALUES (?, ?, ?, 'verified', ?, ?, ?, ?, 'light', 'large', 'robot', '2026-10-01T00:00:00Z')`,
+         VALUES (?, ?, ?, 'active', ?, ?, ?, ?, 'light', 'large', 'robot', '2026-10-01T00:00:00Z')`,
       ).bind(`${token}aaaaaaaaaaaaaaaa`, label, kind, listed, host, declared_url, first_verified),
     ),
   );

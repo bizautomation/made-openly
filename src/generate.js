@@ -1,5 +1,6 @@
 import { DIMENSIONS, labelText, parseSettings } from "./badge.js";
 import registry from "../mascots/registry.json";
+import { keyColumns, makeKey } from "./key.js";
 
 export const ORIGIN = "https://madeopenly.com";
 const MAX_TOKEN_TRIES = 3;
@@ -83,10 +84,13 @@ export async function insertBadge(db, row, makeToken = newToken) {
     try {
       await db
         .prepare(
-          `INSERT INTO badges (token, label, style, size, variant, mascot, declared_url, place_kind, verify_method, status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)`,
+          `INSERT INTO badges (token, label, style, size, variant, mascot, declared_url, place_kind, verify_method, status, listed, key_enc, key_lookup, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .bind(token, row.label, row.style, row.size, row.variant, row.mascot, row.declared_url, row.place_kind, row.verify_method, row.created_at)
+        .bind(
+          token, row.label, row.style, row.size, row.variant, row.mascot, row.declared_url, row.place_kind, row.verify_method,
+          row.declared_url ? "declared" : "new", row.listed ?? "no", row.key_enc ?? null, row.key_lookup ?? null, row.created_at,
+        )
         .run();
       return token;
     } catch (err) {
@@ -129,11 +133,18 @@ export async function handleGenerate(request, env, makeToken = newToken) {
     declared_url: declared,
     place_kind: placeKind(declared, input.is_product === true),
     verify_method: declared ? "address" : null,
+    // Asked to be named at Generate: waits for a first sighting, then for approval.
+    listed: input.list === true ? "asked" : "no",
     created_at: new Date().toISOString(),
   };
+  // The badge key, shown once. Without the KEY_SECRET secret, badges have none.
+  const key = env.KEY_SECRET ? makeKey() : null;
+  if (key) Object.assign(row, await keyColumns(env.KEY_SECRET, key));
   const token = await insertBadge(env.DB, row, makeToken);
   if (!token) return Response.json({ error: "Could not make a badge. Please try again." }, { status: 503 });
 
   const out = snippet(token, { ...s, mascot });
-  return Response.json({ token, snippet: out.html, text: out.text, src: out.src, place_kind: row.place_kind }, { status: 201 });
+  const body = { token, snippet: out.html, text: out.text, src: out.src, place_kind: row.place_kind, listed: row.listed };
+  if (key) body.key = key;
+  return Response.json(body, { status: 201 });
 }

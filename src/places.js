@@ -14,7 +14,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const fmtDay = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 export async function listPlaces(db, { label = null, kind = null, page = 1 } = {}) {
-  const where = ["status = 'verified'", "listed = 'yes'"];
+  const where = ["status = 'active'", "listed = 'yes'"];
   const binds = [];
   if (label) where.push("label = ?") && binds.push(label);
   if (kind) where.push("place_kind = ?") && binds.push(kind);
@@ -93,7 +93,7 @@ ${shell.nav}
 <section class="places-head">
   <div class="wrap">
     <h1>Places wearing Made Openly</h1>
-    <p class="soft">Verified places whose makers asked to be named. ${esc(count)}.</p>
+    <p class="soft">Active places whose makers asked to be named. ${esc(count)}.</p>
     <div class="chips" role="group" aria-label="Filter by label">${labelChips}</div>
     <div class="chips" role="group" aria-label="Filter by kind">${kindChips}</div>
     ${list}

@@ -1,6 +1,8 @@
 import { badge, labelText, parseSettings } from "./badge.js";
-import { handleGenerate } from "./generate.js";
-import { TOKEN_PATH, handleLiveBadge } from "./live.js";
+import { handleGenerate, withinLimit } from "./generate.js";
+import { TOKEN_PATH, bindableHost, handleLiveBadge } from "./live.js";
+import { handleManage, handleManageList, handleRemove, handleSendKey, managePage } from "./manage.js";
+import { recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
@@ -59,7 +61,7 @@ const CSP = [
 
 // GET /: the single page. No cookies are set. Someone who clicked a badge
 // (?t=TOKEN) also sees what that badge's label means; nothing is recorded.
-async function page(env, url) {
+async function page(request, env, ctx, url) {
   const mascots = JSON.stringify(registry.map(({ slug, name, designer }) => ({ slug, name, designer }))).replaceAll("<", "\\u003c");
   let html = pageHtml
     .replace("__TURNSTILE_SITE_KEY__", env.TURNSTILE_SITE_KEY ?? "")
@@ -69,7 +71,12 @@ async function page(env, url) {
     .replace("__TIE_BREAK__", TIE_BREAK);
   for (const [slug, meaning] of Object.entries(MEANINGS)) html = html.replaceAll(`__MEANING_${slug}__`, meaning);
   for (const [slug, cases] of Object.entries(EXAMPLES)) html = html.replace(`__EXAMPLES_${slug}__`, cases.map((c) => `<li>${c}</li>`).join(""));
-  html = html.replace("__BADGE_NOTE__", await badgeNote(env, url.searchParams.get("t")));
+  const token = url.searchParams.get("t");
+  const row = token && /^[A-Za-z0-9]{16,64}$/.test(token)
+    ? await env.DB.prepare("SELECT label, host, declared_url FROM badges WHERE token = ?").bind(token).first()
+    : null;
+  html = html.replace("__BADGE_NOTE__", badgeNote(row));
+  if (row && request.method === "GET") await badgeClick(request, env, token, row);
   return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
@@ -92,9 +99,23 @@ const SHELL = {
   footer: between('<footer id="privacy">', "</footer>"),
 };
 
-async function badgeNote(env, token) {
-  if (!token || !/^[A-Za-z0-9]{16,64}$/.test(token)) return "";
-  const row = await env.DB.prepare("SELECT label FROM badges WHERE token = ?").bind(token).first();
+// A reader clicked the badge (SPEC.md 8.3). When the Referer's host is the
+// place's bound host or the host of its declared address, that is a sighting.
+// Most sites send only the origin, so the host is all that is compared. A
+// click never binds a token and records nothing about the reader.
+async function badgeClick(request, env, token, row) {
+  const from = bindableHost(request.headers.get("Referer"));
+  if (!from) return;
+  let declaredHost = null;
+  try {
+    declaredHost = row.declared_url ? new URL(row.declared_url).hostname.toLowerCase().replace(/^www\./, "") : null;
+  } catch {}
+  if (from !== row.host && from !== declaredHost) return;
+  if (!(await withinLimit(env.RL_BADGE, request))) return;
+  await recordDay(env.DB, token);
+}
+
+function badgeNote(row) {
   if (!row || !MEANINGS[row.label]) return "";
   return `<p class="badge-note" id="badge-note"><b>This badge says: ${labelText(row.label)}</b>${MEANINGS[row.label]} ${BAR_NOTE} It is the maker's own statement.</p>\n    `;
 }
@@ -121,7 +142,12 @@ function route(request, env, ctx, url) {
   // HEAD is answered like GET; the runtime drops the body.
   const method = request.method === "HEAD" ? "GET" : request.method;
 
-  if (method === "GET" && pathname === "/") return page(env, url);
+  if (method === "GET" && pathname === "/") return page(request, env, ctx, url);
+  if (method === "GET" && pathname === "/manage") return managePage(SHELL, CSP);
+  if (method === "POST" && pathname === "/api/manage") return handleManage(request, env);
+  if (method === "POST" && pathname === "/api/manage/remove") return handleRemove(request, env, ctx);
+  if (method === "POST" && pathname === "/api/manage/list") return handleManageList(request, env, ctx);
+  if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
   if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
@@ -156,8 +182,8 @@ export default {
   async scheduled(controller, env, ctx) {
     if (controller.cron === NEW_CHECK_CRON) {
       const summary = await runNewCheck(env);
-      // A new verified place should show on the counter now, not in an hour.
-      if (summary.verified) await purgeStats(env);
+      // A newly active or dormant place should show on the counter now, not in an hour.
+      if (summary.verified || summary.dormant) await purgeStats(env);
       if (summary.checked) console.log("new check", JSON.stringify(summary)); // counts only
       return;
     }

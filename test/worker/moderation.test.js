@@ -11,7 +11,7 @@ async function seed(cols = {}) {
   const token = `mod${String(++n).padStart(13, "0")}tok`;
   const row = {
     label: "human-ai", style: "light", size: "large", variant: "robot", place_kind: "site",
-    status: "verified", listed: "no", host: `place${n}.example`, created_at: "2026-10-01T00:00:00Z",
+    status: "active", listed: "no", host: `place${n}.example`, created_at: "2026-10-01T00:00:00Z",
     first_verified: "2026-10-05T02:00:00Z", ...cols,
   };
   const keys = Object.keys(row);
@@ -45,10 +45,17 @@ describe("POST /api/list", () => {
     expect(await listed(token)).toBe("pending");
   });
 
-  it("refuses a place that is not verified yet", async () => {
-    const token = await seed({ status: "bound", first_verified: null });
-    expect((await postJson("/api/list", { token })).status).toBe(409);
-    expect(await listed(token)).toBe("no");
+  it("lets a place not seen yet ask, and makes it wait for a first sighting", async () => {
+    const token = await seed({ status: "declared", host: null, declared_url: "https://x.substack.com/about", first_verified: null });
+    const res = await postJson("/api/list", { token });
+    expect(await res.json()).toEqual({ ok: true, listed: "asked" });
+    expect(await listed(token)).toBe("asked");
+  });
+
+  it("moves a seen 'asked' place to pending", async () => {
+    const token = await seed({ listed: "asked" });
+    await postJson("/api/list", { token });
+    expect(await listed(token)).toBe("pending");
   });
 
   it("never re-opens a removed place, and leaves a listed one alone", async () => {
