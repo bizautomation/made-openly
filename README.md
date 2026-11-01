@@ -58,6 +58,14 @@ curl "https://madeopenly.com/stats.json?since=2026-11-01"
 
 Full details are in the privacy section of [madeopenly.com](https://madeopenly.com/#privacy) and in [SPEC.md](SPEC.md).
 
+## Why the code is open
+
+The code is public so anyone can check what the badge records and how the counting works. It is here for review, not as a kit to run your own copy.
+
+The badge means something because everyone uses the same one, counted in one place. To support the idea, use the badge from [madeopenly.com](https://madeopenly.com). Please don't run a second copy of the badge or counter.
+
+The code is MIT licensed, so you are free to reuse any part of it for other purposes.
+
 ## How it is built
 
 One Cloudflare Worker with a D1 database. There is no framework and no build step: the page is a single HTML file, and badges are SVG drawn by code.
@@ -80,7 +88,7 @@ One Cloudflare Worker with a D1 database. There is no framework and no build ste
 
 ### Run it locally
 
-Needs Node 24 (the version CI uses).
+To review a change or test a pull request. Needs Node 24 (the version CI uses).
 
 ```sh
 npm install
@@ -90,19 +98,6 @@ npm test           # Workers runtime tests with a local D1
 ```
 
 Local settings go in `.dev.vars`, which is gitignored. For the forms, use Cloudflare's [Turnstile test keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) as `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET`, and set `TURNSTILE_HOSTNAMES=localhost`. The tests need none of this: they mock every outside service.
-
-### Deploy your own
-
-1. Create a D1 database and put its id in `wrangler.toml`. Change the routes to your domain.
-2. Set the secrets with `npx wrangler secret put NAME`:
-   - `TURNSTILE_SECRET`: forms
-   - `RESEND_API_KEY`, `ADMIN_EMAIL`: the owner's email
-   - `ADMIN_SIGNING_KEY`: signs review links
-   - `KEY_SECRET`: encrypts badge keys
-   - `GITHUB_TOKEN`: optional, raises the GitHub API limit
-3. Run `npm run db:migrate:remote`, then `npm run deploy`.
-
-Never commit a secret. `wrangler.toml` holds only public values.
 
 ## Contributing
 
