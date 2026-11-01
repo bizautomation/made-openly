@@ -377,6 +377,18 @@ footer p{margin:0 0 10px}
       <p>It isn't needed. The badge is the record, and taking it off is how you leave.</p></details>
     <details><summary>Can I trust the counter?</summary>
       <p>Each place counts once a day at most, and only while we can see its badge: its image loading there, a click on it from there, or our check finding it on the page. Visits are never counted.</p></details>
+    <details id="when-counting"><summary>When does my place start counting?</summary>
+      <p>It depends on how the badge reaches us. The counter shows each step.</p>
+      <p>If you give a page address when you press Generate, your place shows in "added" and "not verified yet" right away. Without an address, it shows once the badge first loads on your site. A badge that is never put anywhere is removed after 30 days.</p>
+      <p>On a website you run, the badge image loads from madeopenly.com. The first load from your site ties the badge to it, and your place becomes active. You do not need to do anything else. This is the strongest sign, because it means the badge is really on the page.</p>
+      <p>Substack, Medium, Notion and GitHub copy images to their own servers, so we never see the badge load. For these, give the page address when you generate. Your place waits in "not verified yet" until we can confirm the badge is there: GitHub through its API, other pages when they let us read them, or the first time a reader clicks your badge.</p>
+      <p>If we see no sign of a place for 30 days, it moves to "not seen lately". It is kept, not deleted, and it counts again the next time we see it.</p>
+      <p>So: on your own website, just paste the snippet. On Substack, Medium, Notion or GitHub, add the badge and give the page address.</p></details>
+    <details id="why-link"><summary>Why does the badge link back to madeopenly.com?</summary>
+      <p>A reader who sees "Human + AI" should be able to find out what it means and who decided. The link takes them there.</p>
+      <p>It also helps us count. On platforms that copy the image, a reader's click is often the only way we learn the badge is there. The click tells us which site it came from. The copied image does not. The link also holds your badge's ID, so our check can find it on your page.</p>
+      <p>We record nothing about the person who clicks. The click counts your place, not them.</p>
+      <p>You can remove the link and keep the image. On your own website and in a GitHub README it still counts. On Substack, Medium or Notion it may never count.</p></details>
     <details><summary>Does it work on Substack, GitHub, Medium or Notion?</summary>
       <p>Yes. Paste the page address when you make the badge. GitHub takes the code as it is. Substack, Medium and Notion don't take code: download the badge PNG, add it as an image, and link it to your badge link (madeopenly.com/?t=…). It counts when a reader clicks it, or when we find the link on your page.</p></details>
     <details><summary>What about apps, PDFs or videos?</summary>
