@@ -181,9 +181,15 @@ For sites with their own light/dark toggle, offer a copy-ready snippet that swap
 
 After Generate, the page also offers a copy-ready prompt for an AI coding assistant such as Claude Code. Pasted into the assistant inside the site's or repo's project, it adds the badge: to the shared footer for a site or product (with the theme-swap version for sites with a theme toggle), or under the title of `README.md` for a repo. It tells the assistant to keep the token, URLs, size and alt text exactly, never to download the image, and to show the diff before committing. Posts (Substack, Medium) get no prompt, since there is no project to edit. Decided by the owner, 29 Oct 2026.
 
+### PNG version (counted)
+
+The same snippet with `/b/TOKEN.png` instead of `/b/TOKEN.svg`, for email signatures, LinkedIn, office documents and site builders that refuse SVG. It counts the same way. It sits under "More ways to add it".
+
+PNGs are never converted per request. There are only 48 badges (3 labels × 4 styles × 2 sizes × 2 variants) plus 8 neutral ones, so `scripts/render-pngs.js` draws each one once, at 2× for high-density screens, into `public/png/<label>-<style>-<size>-<variant>.png` and `public/png/neutral-<style>-<size>.png`. Rerun it after changing the badge drawing. SVG stays drawn in code: the Worker runs on every load to count anyway, and drawing takes microseconds. (Owner, 1 Nov 2026.)
+
 ### Plain badge (no tracking)
 
-A downloadable SVG/PNG with no token, for PDFs, ebooks, videos and app store pages. It is never counted.
+A downloadable SVG or PNG with no token, for PDFs, ebooks, videos and app store pages. It is never counted. The PNG is the static file in `public/png/`.
 
 ---
 
@@ -261,7 +267,7 @@ No IP address, user agent, visitor identifier or email address is stored anywher
 |---|---|---|
 | GET | `/` | The single page (section 11). |
 | POST | `/api/generate` | Create a token, return the snippet. |
-| GET | `/b/:token.svg` | Serve a badge and record the day. |
+| GET | `/b/:token.svg`, `/b/:token.png` | Serve a badge and record the day. |
 | GET | `/badge.svg` | Preview only (picker). Same params, no token, never records. |
 | GET | `/stats.json` | Public counter data (section 10). |
 | POST | `/api/list` | Ask for a place to be named on the public list. |
@@ -285,7 +291,7 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 6. Make the badge key (section 8.5) and store it encrypted.
 7. Return the ready snippet (section 6), the plain-text version and the key. The key is shown once and never again.
 
-### 8.2 `GET /b/:token.svg` (the hot path)
+### 8.2 `GET /b/:token.svg` and `/b/:token.png` (the hot path)
 
 1. Look up the token. Unknown token: return a neutral "Made Openly" badge, record nothing.
 2. Draw the SVG. The label always comes from storage, since it is what the counter counts. The look comes from the query string: `s` style, `z` size, `v` variant, so a site can swap themes without a new token. A missing or invalid value falls back to the stored setting. (Decided by the owner, 29 Oct 2026.)
@@ -293,7 +299,9 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `verify_method='live'`).
 5. If the token is bound to host A and the referrer is host B: record nothing, and set `status='flagged'` (someone copied another site's snippet).
 6. A load from the bound host is a sighting (section 8.3): `INSERT OR IGNORE INTO daily (token, day)` for today, one row per token per day however many loads, and the first row of the day marks the place seen.
-7. Respond with `Content-Type: image/svg+xml`, `Cache-Control: public, max-age=300` (short, so loads keep reaching the Worker).
+7. Respond with `Content-Type: image/svg+xml` (drawn in code) or `image/png` (the pre-drawn file, section 6), and `Cache-Control: public, max-age=300` (short, so loads keep reaching the Worker).
+8. **Cost:** once a place is marked seen today (`last_seen`), later loads skip the write, so a load is one D1 read and no write.
+9. **Over the per-IP limit** (often a shared proxy such as GitHub camo or Gmail): still draw the badge, but bind and record nothing, so the host page never shows a broken image. Floods are stopped earlier by the zone WAF rule (section 9).
 
 ### 8.3 Sightings: active, dormant and declared places
 
@@ -377,7 +385,7 @@ Limits are keyed by IP using Cloudflare's rate limiting. The IP is held in memor
 | Endpoint | Guard | Limit |
 |---|---|---|
 | `/api/generate` | Turnstile + per-IP | 10 per 10 minutes, 50 per day |
-| `/b/:token.svg` | No per-IP limit (cache and once-a-day rows absorb load) | Flood rule only: block an IP above ~300 requests per minute |
+| `/b/:token.svg`, `.png` | Over 300 per minute per IP the Worker still draws the badge but records nothing | Flood rule only: block an IP above ~300 requests per minute |
 | `/api/contact` | Turnstile + per-IP | 3 per hour |
 | `/api/list`, `/api/report` | per-IP | 10 per hour |
 | `/api/manage*` | per-IP, plus 5 wrong keys per badge per hour (section 8.5) | 10 per minute |

@@ -1,8 +1,8 @@
 import { badge, neutralBadge, parseSettings } from "./badge.js";
 import { withinLimit } from "./generate.js";
-import { recordDay } from "./sighting.js";
+import { day, recordDay } from "./sighting.js";
 
-export const TOKEN_PATH = /^\/b\/([A-Za-z0-9]{16,64})\.svg$/;
+export const TOKEN_PATH = /^\/b\/([A-Za-z0-9]{16,64})\.(svg|png)$/;
 const LIVE_CACHE = "public, max-age=300";
 
 // Hosts that never bind a token: previews, image proxies and this site itself.
@@ -39,22 +39,37 @@ export function bindableHost(referer) {
   return host;
 }
 
-// GET /b/:token.svg (SPEC.md 8.2). Records the place and the day, never the visitor.
-export async function handleLiveBadge(request, env, token, url) {
-  if (!(await withinLimit(env.RL_BADGE, request))) return new Response("Too many requests", { status: 429 });
+// The PNG twin of a badge: drawn ahead of time by scripts/render-pngs.js and
+// served from public/png/, so no image is converted per request.
+function png(env, name) {
+  return env.ASSETS.fetch(new Request(`https://madeopenly.com/png/${name}.png`)).then((res) =>
+    res.ok
+      ? new Response(res.body, { headers: { "Content-Type": "image/png", "Cache-Control": LIVE_CACHE, "X-Content-Type-Options": "nosniff" } })
+      : new Response("Not found", { status: 404 }),
+  );
+}
+
+// GET /b/:token.svg or .png (SPEC.md 8.2). Records the place and the day, never the visitor.
+export async function handleLiveBadge(request, env, token, url, format = "svg") {
+  // Over the per-IP limit (often a shared proxy such as GitHub camo or Gmail):
+  // still draw the badge, so the host page never shows a broken image, but
+  // bind and record nothing. Floods are stopped earlier by the zone WAF rule.
+  const limited = !(await withinLimit(env.RL_BADGE, request));
 
   const db = env.DB;
-  const row = await db.prepare("SELECT label, style, size, variant, host FROM badges WHERE token = ?").bind(token).first();
+  const row = await db.prepare("SELECT label, style, size, variant, host, last_seen FROM badges WHERE token = ?").bind(token).first();
   if (!row) {
-    const hint = parseSettings({ size: url.searchParams.get("z") ?? undefined, style: url.searchParams.get("s") ?? undefined });
-    return svg(neutralBadge(hint?.size, hint?.style));
+    const hint = parseSettings({ size: url.searchParams.get("z") ?? undefined, style: url.searchParams.get("s") ?? undefined }) ?? {};
+    const size = hint.size ?? "large", style = hint.style ?? "light";
+    return format === "png" ? png(env, `neutral-${style}-${size}`) : svg(neutralBadge(size, style));
   }
 
   const look = lookFromQuery(row, url.searchParams);
-  const body = () => badge(look.size, look.style, row.label, look.variant);
+  const body = () =>
+    format === "png" ? png(env, `${row.label}-${look.style}-${look.size}-${look.variant}`) : svg(badge(look.size, look.style, row.label, look.variant));
 
   // A HEAD request (link checkers) gets the badge but never binds or records.
-  if (request.method === "HEAD") return svg(body());
+  if (request.method === "HEAD" || limited) return body();
 
   const host = bindableHost(request.headers.get("Referer"));
   // Without a usable Referer the load cannot say where it is: draw, record nothing.
@@ -80,10 +95,11 @@ export async function handleLiveBadge(request, env, token, url) {
     await flag(db, token);
   }
 
-  // A load from the place's own host is a sighting (SPEC.md 8.3).
-  if (record) await recordDay(db, token);
+  // A load from the place's own host is a sighting (SPEC.md 8.3). Once the
+  // place is marked seen today, later loads skip the write: one read, no write.
+  if (record && row.last_seen !== day()) await recordDay(db, token);
 
-  return svg(body());
+  return body();
 }
 
 // The label is the claim and always comes from storage. The look (s=style,

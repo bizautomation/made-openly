@@ -143,3 +143,45 @@ describe("bindableHost", () => {
     expect(bindableHost("https://blog.example.com/")).toBe("blog.example.com");
   });
 });
+
+describe("PNG badge and load costs", () => {
+  it("serves the pre-drawn PNG and records like the SVG", async () => {
+    const token = await seed();
+    const res = await call(`/b/${token}.png?s=dark&z=small&v=wordmark`, { headers: { Referer: "https://png.example/", "CF-Connecting-IP": "203.0.113.31" } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("image/png");
+    expect(res.headers.get("Cache-Control")).toBe("public, max-age=300");
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    expect(String.fromCharCode(...bytes.slice(1, 4))).toBe("PNG");
+    expect(await row(token)).toMatchObject({ host: "png.example", status: "active" });
+    expect(await days(token)).toBe(1);
+  });
+
+  it("draws a neutral PNG for an unknown token", async () => {
+    const res = await call("/b/unknowntoken0000000000.png?z=small");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("image/png");
+  });
+
+  it("skips the write once the place was seen today", async () => {
+    const token = await seed({ host: "seen.example", status: "active" });
+    await load(token, "https://seen.example/");
+    expect(await days(token)).toBe(1);
+    await env.DB.prepare("DELETE FROM daily WHERE token = ?").bind(token).run();
+    await load(token, "https://seen.example/");
+    expect(await days(token)).toBe(0);
+  });
+
+  it("still draws the badge over the rate limit, and records nothing", async () => {
+    const token = await seed();
+    const hit = (ref) => call(`/b/${token}.svg`, { headers: { Referer: ref, "CF-Connecting-IP": "198.51.100.77" } });
+    for (let i = 0; i < 300; i++) await hit("https://noise.example/");
+    await env.DB.prepare("UPDATE badges SET host = NULL, status = 'new', last_seen = NULL WHERE token = ?").bind(token).run();
+    await env.DB.prepare("DELETE FROM daily WHERE token = ?").bind(token).run();
+    const res = await hit("https://late.example/");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("image/svg+xml");
+    expect(await row(token)).toMatchObject({ host: null, status: "new" });
+    expect(await days(token)).toBe(0);
+  });
+});
