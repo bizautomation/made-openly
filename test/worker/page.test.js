@@ -28,12 +28,11 @@ describe("GET /", () => {
 });
 
 describe("FAQ", () => {
-  it("explains counting, hosting, tokens and the link, after the counter entry", async () => {
+  it("explains counting, hosting and the link, after the counter entry", async () => {
     const html = await (await call("/")).text();
     const faq = html.slice(html.indexOf('id="faq"'), html.indexOf('id="contact"'));
     const order = ["Can I trust the counter?", "When does my place start counting?",
       "Why does the badge image load from madeopenly.com? Can I host it myself?",
-      "What if the badge has no token, or someone copies mine?",
       "Why does the badge link back to madeopenly.com?",
     ].map((q) => faq.indexOf(`${q}</summary>`));
     expect(order.every((i) => i > 0)).toBe(true);
@@ -41,7 +40,6 @@ describe("FAQ", () => {
     expect(faq).toContain('<details id="when-counting">');
     expect(faq).toContain('<details id="why-link">');
     expect(faq).toContain('<details id="host-it">');
-    expect(faq).toContain('<details id="token">');
     // The same words as the counter.
     for (const word of ['"added"', '"not verified yet"', '"not seen lately"']) expect(faq).toContain(word);
     expect(html).toContain('<a href="#faq">FAQ</a>');
