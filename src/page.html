@@ -297,6 +297,11 @@ footer p{margin:0 0 10px}
             <pre id="theme-snippet"></pre>
             <button class="btn quiet" type="button" data-copy="theme-snippet">Copy</button>
           </div>
+          <div class="block">
+            <p>Email signature, LinkedIn, or a site that won't take SVG? Use this PNG version. It counts the same way.</p>
+            <pre id="png-snippet"></pre>
+            <button class="btn quiet" type="button" data-copy="png-snippet">Copy</button>
+          </div>
           <div class="block" id="ai-block">
             <p>Using an AI coding assistant? Paste this prompt into it, in your project, and it adds the badge for you.</p>
             <pre id="ai-prompt"></pre>
@@ -305,7 +310,7 @@ footer p{margin:0 0 10px}
         </details>
       </div>
     </div>
-    <p class="small soft" style="margin-top:22px">For a PDF, video or app store page, <a id="download" href="/badge.svg?download=1" download="made-openly.svg">download the plain badge</a>. It has no tracking and is never counted.</p>
+    <p class="small soft" style="margin-top:22px">For a PDF, video or app store page, download the plain badge as <a id="download" href="/badge.svg?download=1" download="made-openly.svg">SVG</a> or <a id="download-png" href="/png/human-ai-light-large-robot.png" download="made-openly.png">PNG</a>. It has no tracking and is never counted.</p>
   </div>
 </section>
 
@@ -433,6 +438,8 @@ function updatePreview() {
   $("preview-box").classList.toggle("on-dark", s.style.endsWith("dark"));
   $("mascot-set").hidden = s.variant !== "robot";
   $("download").href = `/badge.svg?${query(s)}&download=1`;
+  $("download-png").href = `/png/${s.label}-${s.style}-${s.size}-${s.variant}.png`;
+  $("download-png").download = `made-openly-${s.label}-${s.style}-${s.size}.png`;
   $("result").classList.remove("show");
 }
 picker.addEventListener("change", updatePreview);
@@ -522,6 +529,7 @@ picker.addEventListener("submit", async (e) => {
   $("snippet").textContent = data.snippet;
   const theme = themeSnippet(data.snippet, s);
   $("theme-snippet").textContent = theme;
+  $("png-snippet").textContent = data.snippet.replace(`/b/${data.token}.svg`, `/b/${data.token}.png`);
   $("ai-block").hidden = data.place_kind === "post";
   $("ai-prompt").textContent = aiPrompt(data, theme);
   $("asked-note").hidden = data.listed !== "asked";

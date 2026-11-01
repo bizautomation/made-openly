@@ -16,6 +16,7 @@ routes = [
 # directly; every other path goes to the Worker.
 [assets]
 directory = "./public"
+binding = "ASSETS" # the Worker serves the pre-drawn PNG badges from public/png/
 
 [vars]
 TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with wrangler secret put

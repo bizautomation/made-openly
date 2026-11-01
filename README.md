@@ -25,6 +25,8 @@ The question to ask: **who produced most of the final words, code or images?** T
 2. Optional: paste the page address where the badge will live. Do this for Substack, GitHub, Medium and Notion, because they copy images instead of loading them from us.
 3. Press **Generate** and paste the snippet into your page.
 
+For an email signature, LinkedIn or a site builder that won't take SVG, use the PNG version under "More ways to add it". It counts the same way.
+
 No sign-up and no account. You can also save a **badge key**, which you need later to remove your place or change its listing at [madeopenly.com/manage](https://madeopenly.com/manage). For a PDF, video or app store page, download the plain badge: it has no tracking and is never counted.
 
 ## How counting works
@@ -74,7 +76,8 @@ One Cloudflare Worker with a D1 database. There is no framework and no build ste
 |---|---|
 | `src/index.js` | Routes, security headers, the scheduled checks |
 | `src/badge.js` | Draws every badge as SVG |
-| `src/live.js` | `GET /b/:token.svg`: serves a badge and records the day |
+| `src/live.js` | `GET /b/:token.svg` and `.png`: serves a badge and records the day |
+| `scripts/render-pngs.js`, `public/png/` | The PNG badges, drawn once ahead of time |
 | `src/generate.js` | `POST /api/generate`: makes a token, snippet and key |
 | `src/verify.js`, `src/sighting.js` | The Worker check, and active/dormant status |
 | `src/stats.js`, `src/places.js` | `/stats.json` and the `/places` page |
