@@ -69,6 +69,9 @@ describe("finding the token", () => {
 
   it("does not match a longer token that starts with this one", () => {
     expect(pageHasToken(`<a href="https://madeopenly.com/?t=${T.link}9">`, T.link)).toBe(false);
+    // The PNG badge, for email signatures and site builders, counts the same way.
+    expect(pageHasToken(`<img src="https://madeopenly.com/b/${T.img}.png?l=human-ai">`, T.img)).toBe(true);
+    expect(pageHasToken(`<img src="https://madeopenly.com/b/${T.img}.gif">`, T.img)).toBe(false);
     expect(pageHasToken(`<a href="https://madeopenly.com/?t=${T.link}&x=1">`, T.link)).toBe(true);
   });
 
