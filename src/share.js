@@ -57,13 +57,9 @@ export function sitemap() {
   });
 }
 
-// Cloudflare's managed robots.txt (content signals) is set on the zone and
-// is added in front of this file. Only the sitemap line is ours.
-export function robots() {
-  return new Response(`Sitemap: ${ORIGIN}/sitemap.xml\n`, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=86400" },
-  });
-}
+// robots.txt is Cloudflare's managed file (content signals), set on the
+// zone. A robots.txt from the Worker replaces it rather than adding to it, so
+// the Worker serves none and the sitemap is submitted in Search Console.
 
 // GET /og.png: the share image, drawn once by scripts/render-og.js.
 export async function shareImage(env) {
