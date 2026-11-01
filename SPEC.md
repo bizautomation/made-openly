@@ -13,7 +13,7 @@ Made Openly is a free badge that a person puts on their work to say, openly, how
 The site does three things:
 
 1. **Gives out badges.** Anyone picks a badge, copies a snippet, pastes it into their site, repo or post. No sign-up.
-2. **Counts places wearing them.** A place counts once it has been verified (the badge was found there). It counts places, never visitors.
+2. **Counts places wearing them.** A place counts while we can see its badge there (section 8.3). It counts places, never visitors.
 3. **Shows the count publicly.** A live counter, split by badge label and place type, is the experiment's result. The project is framed as a year-long experiment: who chooses to wear which badge.
 
 The badge is a **self-declaration, not a certificate.** It vouches for honesty about how something was made, not for quality.
@@ -201,15 +201,27 @@ CREATE TABLE badges (
   declared_url   TEXT,                      -- optional page URL given at Generate (Way B)
   place_kind     TEXT NOT NULL DEFAULT 'site', -- site | repo | post | product
   verify_method  TEXT,                      -- live | address
-  status         TEXT NOT NULL DEFAULT 'new', -- new | bound | verified | flagged
-  listed         TEXT NOT NULL DEFAULT 'no',  -- no | pending | yes | reported | removed
+  status         TEXT NOT NULL DEFAULT 'new', -- new | active | dormant | declared | flagged (section 8.3)
+  listed         TEXT NOT NULL DEFAULT 'no',  -- no | asked | pending | yes | reported | removed (section 12)
   created_at     TEXT NOT NULL,
   bound_at       TEXT,
-  first_verified TEXT,
-  last_verified  TEXT
+  first_verified TEXT,                      -- first sighting by either signal
+  last_verified  TEXT,                      -- last time the Worker check found it
+  last_seen      TEXT,                      -- YYYY-MM-DD (UTC): latest sighting by either signal
+  key_enc        TEXT,                      -- badge key, AES-GCM under the KEY_SECRET secret (section 8.5)
+  key_lookup     TEXT,                      -- HMAC of the key, to find a badge by its key
+  key_sent       INTEGER NOT NULL DEFAULT 0 -- 1 once the key was emailed; the address is never stored
 );
 CREATE INDEX badges_host ON badges(host);
 CREATE INDEX badges_status ON badges(status);
+CREATE UNIQUE INDEX badges_key_lookup ON badges(key_lookup);
+
+CREATE TABLE key_attempts (                -- wrong keys or codes per badge per hour; no IP
+  token TEXT NOT NULL,
+  hour  TEXT NOT NULL,                      -- YYYY-MM-DDTHH (UTC)
+  count INTEGER NOT NULL,
+  PRIMARY KEY (token, hour)
+);
 
 CREATE TABLE daily (
   token TEXT NOT NULL,
@@ -229,14 +241,17 @@ CREATE TABLE weekly_counts (               -- anonymous snapshot, written by the
   week     TEXT NOT NULL,                  -- ISO week, e.g. 2026-W45
   label    TEXT NOT NULL,
   kind     TEXT NOT NULL,
-  verified INTEGER NOT NULL,               -- verified places with this label and kind that week
+  verified   INTEGER NOT NULL,             -- active places with this label and kind that week
+  added      INTEGER NOT NULL DEFAULT 0,   -- active + dormant + unverified
+  dormant    INTEGER NOT NULL DEFAULT 0,
+  unverified INTEGER NOT NULL DEFAULT 0,   -- status 'declared'
   PRIMARY KEY (week, label, kind)
 );
 ```
 
 `weekly_counts` holds counts only, never a token or host, so removing a badge still deletes all of its data while past weeks of the growth line stay correct.
 
-No IP address, user agent or visitor identifier is stored anywhere.
+No IP address, user agent, visitor identifier or email address is stored anywhere. The plain badge key is never stored or logged.
 
 ---
 
@@ -249,46 +264,75 @@ No IP address, user agent or visitor identifier is stored anywhere.
 | GET | `/b/:token.svg` | Serve a badge and record the day. |
 | GET | `/badge.svg` | Preview only (picker). Same params, no token, never records. |
 | GET | `/stats.json` | Public counter data (section 10). |
-| POST | `/api/list` | Ask for a verified place to be named on the public list. |
+| POST | `/api/list` | Ask for a place to be named on the public list. |
 | POST | `/api/report` | Report a listed place. |
 | POST | `/api/contact` | Contact form. |
 | GET | `/admin/review?k=...` | One-click approve/reject links from the weekly email (signed). |
+| GET | `/places` | Every named place (section 11.3). |
+| GET | `/manage` | Manage a badge with its key (section 8.5). |
+| POST | `/api/manage`, `/api/manage/remove`, `/api/manage/list` | Open, remove or list a badge with its key or code. |
+| POST | `/api/send-key` | Email a badge key once. |
 
 ### 8.1 `POST /api/generate`
 
-Input: `label, style, size, variant, mascot, declared_url (optional), is_product (optional), turnstile_token`.
+Input: `label, style, size, variant, mascot, declared_url (optional), is_product (optional), list (optional boolean), turnstile_token`.
 
 1. Verify Turnstile server-side. Reject on failure.
 2. Check rate limits (section 9).
 3. Make a token: `crypto.randomUUID()` with dashes removed, or any random string of at least 16 characters.
-4. `INSERT` into `badges` with `status='new'`. The token is the primary key. If the insert fails on a conflict, generate a new token and retry, **at most 3 times**, then return an error. Never loop.
+4. `INSERT` into `badges` with `status='new'`, or `status='declared'` when an address is given, and `listed='asked'` when `list` is true (else `'no'`). The token is the primary key. If the insert fails on a conflict, generate a new token and retry, **at most 3 times**, then return an error. Never loop.
 5. If `declared_url` is given: validate it is `https://`, set `verify_method='address'` and set `place_kind` (section 8.4).
-6. Return the ready snippet (section 6) and the plain-text version.
+6. Make the badge key (section 8.5) and store it encrypted.
+7. Return the ready snippet (section 6), the plain-text version and the key. The key is shown once and never again.
 
 ### 8.2 `GET /b/:token.svg` (the hot path)
 
 1. Look up the token. Unknown token: return a neutral "Made Openly" badge, record nothing.
 2. Draw the SVG. The label always comes from storage, since it is what the counter counts. The look comes from the query string: `s` style, `z` size, `v` variant, so a site can swap themes without a new token. A missing or invalid value falls back to the stored setting. (Decided by the owner, 29 Oct 2026.)
-3. Read the `Referer` header. Take its host. Ignore and do not bind if it is missing, `localhost`, an IP address, or a known preview host (`*.pages.dev`, `*.vercel.app`, `*.netlify.app` previews, `127.0.0.1`, etc.).
-4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `status='bound'`, `verify_method='live'`).
+3. Read the `Referer` header. Take its host. If it is missing, `localhost`, an IP address, or a known preview host (`*.pages.dev`, `*.vercel.app`, `*.netlify.app` previews, `127.0.0.1`, etc.), draw the badge and record nothing.
+4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `verify_method='live'`).
 5. If the token is bound to host A and the referrer is host B: record nothing, and set `status='flagged'` (someone copied another site's snippet).
-6. `INSERT OR IGNORE INTO daily (token, day)` for today. One row per token per day, however many loads.
+6. A load from the bound host is a sighting (section 8.3): `INSERT OR IGNORE INTO daily (token, day)` for today, one row per token per day however many loads, and the first row of the day marks the place seen.
 7. Respond with `Content-Type: image/svg+xml`, `Cache-Control: public, max-age=300` (short, so loads keep reaching the Worker).
 
-### 8.3 Verification (Cron, Mondays 02:00 UTC, plus a first check every 15 minutes)
+### 8.3 Sightings: active, dormant and declared places
 
-For every token with a `host` or a `declared_url`:
+A place is a token with a bound `host` or a `declared_url`. It counts while either of two signals sees it. Fetching other people's pages is fragile (Substack answers the checker with HTTP 429, and other hosts may block it), so one signal is enough, and losing both only pauses the count.
 
-1. Fetch the page: `declared_url` if set, otherwise `https://<host>/`.
-2. Look for the token in the HTML, in any of: the badge link href (`madeopenly.com/?t=TOKEN`), the image src (`/b/TOKEN.svg`), or a GitHub camo URL (`camo.githubusercontent.com/...`, hex-decode the original URL and search it).
-3. **Found:** `status='verified'`, update `last_verified`, set `first_verified` if empty.
-4. **Not found on a previously verified place:** the badge was removed, which is the opt-out. Delete the token's `badges` row and all its `daily` rows.
-5. **Never found, bound more than 30 days ago:** clear `host` and set `status='new'` so the token can bind again.
-6. **Created more than 30 days ago and never bound or declared:** delete it (cleans up bot-generated tokens).
+**Signal 1, the badge itself.**
+- **Load:** the badge image loads with a valid Referer from the place's bound host (section 8.2).
+- **Click:** a reader clicks the badge and the browser opens `madeopenly.com/?t=TOKEN` with a Referer whose host is the place's bound host or the host of its declared address. Most sites send only the origin, so only the host is compared; the token says which place it is. A click never binds a token. Platforms that re-host the image (Substack, Medium, GitHub) still send a Referer on a click.
+- Either one writes the same single `daily` row per token per day, and nothing about the visitor. A Referer can be faked; the owner accepts that.
 
-Run in batches with a short delay between fetches. Use a polite `User-Agent` such as `MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)`.
+**Signal 2, the Worker check.** It looks for the token at the place:
+- **GitHub repos:** the official API, `GET https://api.github.com/repos/<owner>/<repo>/readme` with `Accept: application/vnd.github.raw`, with the optional `GITHUB_TOKEN` secret.
+- **Every other place:** fetch `declared_url` if set, otherwise `https://<host>/`, and look for the token in the badge link href (`madeopenly.com/?t=TOKEN`), the image src (`/b/TOKEN.svg`), a GitHub camo URL (hex-decoded) or a percent-encoded image proxy URL. On HTTP 429 it waits for `Retry-After` (at most 5 seconds) and asks once more.
+- Use a polite `User-Agent`: `MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)`. Fetch in batches with a short delay between them.
+- It runs every Monday at 02:00 UTC for every place, and every 15 minutes for places not yet active that were bound or declared in the last 7 days (at most 50 per run, newest first).
 
-**First check every 15 minutes** (Cron `*/15 * * * *`). So a new badge counts within minutes instead of by next Monday, a second pass looks at places not yet verified whose `bound_at` (or `created_at`, for a declared address) is within the last 7 days, at most 50 per run, newest first. It runs step 3 only: it never deletes, releases or writes the weekly snapshot, which stay with the Monday check. When it verifies a place it purges the cached `/stats.json`. Decided by the owner, 1 Nov 2026.
+**Statuses**
+
+| Status | Meaning | Counted as |
+|---|---|---|
+| `active` | Seen by either signal in the last 30 days | the main counter |
+| `dormant` | Seen before, but nothing in the last 30 days | "not seen lately" |
+| `declared` | Has a declared address, never seen by either signal yet | "not verified yet" |
+| `new` | Not bound and not declared | not counted |
+| `flagged` | Its snippet was loaded on a second host | not counted |
+
+- Any sighting makes the place `active`, sets `last_seen` to today and `first_verified` if empty. A flagged place is cleared only when the Worker check finds it on its own page.
+- A failed check (404, 429, 5xx, network error) only means "not seen this time". It never deletes and never changes a status.
+- An active place with no sighting for 30 days becomes `dormant`, in the 15-minute run. The next sighting makes it active again.
+- A place that asked to be named (`listed='asked'`) moves to `listed='pending'` with its first sighting (section 12).
+- When a run turns a place active or dormant, the cached `/stats.json` is purged.
+
+**Removal.**
+- Places that were ever bound or declared are never deleted automatically. A dormant or declared record stays until it is removed.
+- The badge owner removes it completely with the badge key (section 8.5).
+- The site owner removes records by hand: for contact-form requests, and for old records he decides to clear (for example, no sighting for a year). The Monday review email shows "Places with no sighting for 12+ months: n" so he can decide. There is no delete button in the email.
+- Tokens created more than 30 days ago and never bound or declared are deleted by the Monday check (bot cleanup). Key attempt rows older than a day are deleted then too.
+
+Decided by the owner, 1 Nov 2026.
 
 ### 8.4 Place types
 
@@ -303,6 +347,27 @@ Detected from the address, with one checkbox:
 
 Many tokens may share one host (medium.com, github.com, substack.com). A token is one place.
 
+### 8.5 The badge key
+
+At Generate the Worker makes a key for the badge: 20 random bytes, base32 encoded (32 characters), so authenticator apps accept it.
+
+- **Stored:** encrypted with AES-GCM under the `KEY_SECRET` Worker secret (`key_enc`), with an HMAC of it (`key_lookup`) so a key alone finds its badge. The plain key is never stored or logged. Without `KEY_SECRET`, badges are made without a key; badges made before keys existed have none.
+- **Proves:** the key, or a 6-digit code made from it (RFC 6238: SHA-1, 6 digits, 30-second step, the previous and next step accepted), proves ownership of that one badge. With it the owner can take the place off Made Openly completely, and turn its public listing on or off. Future owner tools use the same key. The key never touches the maker's own page.
+- **Guessing limit:** after 5 wrong keys or codes for a badge within an hour, every attempt is refused until the hour ends. Counted per badge in `key_attempts`, never per person.
+
+**Ways to keep it (all optional, after the snippet):**
+- **Copy link:** `https://madeopenly.com/manage#k=<key>`. The key sits after `#`, so it never reaches server logs or Referer headers.
+- **Save picture:** a PNG card with the QR code, "Made Openly badge key", the place, the key as text, and "Open madeopenly.com/manage to use it."
+- **Add to authenticator:** the same QR, encoding `otpauth://totp/Made%20Openly:<place>?secret=<key>&issuer=Made%20Openly`, with "Scan it with Google Authenticator, 1Password or a similar app." The QR is drawn in the browser by code bundled in the repo (`public/vendor/qrcode.js`, MIT), never an outside script.
+- **Email it to me:** the browser posts `{token, key, email}` to `POST /api/send-key`. The server checks the key against the token and sends one email through Resend with the link and the key. The address is used for that one send and is not stored. One send per badge, and per-IP limits (section 9).
+- **Nothing:** fine. The contact form is the fallback.
+
+**`GET /manage`.** With `#k=` in the address, the page opens the badge at once and removes the key from the address bar. Without it, two fields: "Badge or page address" and "Key or 6-digit code". It shows the place, its label, its listing state and whether it counts now (active, dormant or declared), with two buttons:
+- **Remove from Made Openly**, which asks once to confirm. It deletes the `badges` row, its `daily` and `key_attempts` rows, and purges the cached `/stats.json`. The page then says: "Done. Your place is off Made Openly: no count, no listing, no data. The badge on your page now shows a plain Made Openly mark. Take it off your page whenever you like." A badge left on the page has an unknown token, so it draws the neutral badge and records nothing (section 8.2).
+- **Name it on the list** or **Take it off the list** (section 12).
+
+Decided by the owner, 1 Nov 2026.
+
 ---
 
 ## 9. Rate limits and abuse
@@ -315,8 +380,10 @@ Limits are keyed by IP using Cloudflare's rate limiting. The IP is held in memor
 | `/b/:token.svg` | No per-IP limit (cache and once-a-day rows absorb load) | Flood rule only: block an IP above ~300 requests per minute |
 | `/api/contact` | Turnstile + per-IP | 3 per hour |
 | `/api/list`, `/api/report` | per-IP | 10 per hour |
+| `/api/manage*` | per-IP, plus 5 wrong keys per badge per hour (section 8.5) | 10 per minute |
+| `/api/send-key` | per-IP, one send per badge | 3 per hour |
 
-The Workers rate-limit binding only counts over 10 or 60 seconds, so the Worker enforces per-minute limits (Generate 5, contact 1, list/report 3 per minute per IP, badge 300) and the longer windows above are zone WAF rate-limiting rules. Decided by the owner, 28 Oct 2026.
+The Workers rate-limit binding only counts over 10 or 60 seconds, so the Worker enforces per-minute limits (Generate 5, contact 1, list/report 3, manage 10, send-key 3 per minute per IP, badge 300) and the longer windows above are zone WAF rate-limiting rules. Decided by the owner, 28 Oct 2026.
 
 Cleanup: tokens never bound or declared within 30 days are deleted by the weekly job.
 
@@ -326,7 +393,13 @@ Cleanup: tokens never bound or declared within 30 days are deleted by the weekly
 
 ### What counts
 
-A **verified place**: one token, found at its place by the weekly check. Each place counts once a day at most (`daily` table). Visits are never counted or shown.
+Every place that was **added** (it has a bound host or a declared address) is shown, not only the ones that count:
+
+- **Active:** status `active`. These are the main count.
+- **Not seen lately:** status `dormant`.
+- **Not verified yet:** status `declared`.
+
+**Added** = active + not seen lately + not verified yet. Tokens generated but never placed are not added. Each place is seen once a day at most (`daily` table). Visits are never counted or shown.
 
 ### `/stats.json` (public, no auth, cached ~1 hour)
 
@@ -337,25 +410,33 @@ A **verified place**: one token, found at its place by the weekly check. Each pl
   "by_label": { "mostly-ai": 0, "human-ai": 0, "human-only": 0 },
   "by_kind":  { "site": 0, "repo": 0, "post": 0, "product": 0 },
   "by_label_kind": { "mostly-ai": { "site": 0, "repo": 0, "post": 0, "product": 0 } },
-  "weekly": [ { "week": "2026-W45", "verified": 0 } ],
+  "added_total": 0,
+  "dormant_total": 0,
+  "unverified_total": 0,
+  "by_status_label": {
+    "active":     { "mostly-ai": 0, "human-ai": 0, "human-only": 0 },
+    "dormant":    { "mostly-ai": 0, "human-ai": 0, "human-only": 0 },
+    "unverified": { "mostly-ai": 0, "human-ai": 0, "human-only": 0 }
+  },
+  "weekly": [ { "week": "2026-W45", "verified": 0, "added": 0, "dormant": 0, "unverified": 0 } ],
   "new_last_7_days": 0,
   "listed_total": 1,
   "listed": [ { "place": "example.com", "url": "https://example.com/", "label": "human-ai", "kind": "site", "since": "2026-11-02" } ]
 }
 ```
 
-`listed` is newest first and holds at most 200 places; `listed_total` is the full count. The `/places` page shows them all (owner, 1 Nov 2026).
+`total_verified`, `by_label`, `by_kind`, `by_label_kind` and `new_last_7_days` count active places; the weekly scheduled task reads these keys, so they keep their names. `listed` holds active named places only, newest first, at most 200; `listed_total` is their full count. The `/places` page shows them all.
 
 `weekly` comes from `weekly_counts` (one snapshot per weekly run), not from the current `badges` rows.
 
-Optional: `/stats.json?since=YYYY-MM-DD` returns only places first verified since that date. This endpoint is how a scheduled assistant reads the numbers for the weekly marketing report, and it powers the on-page counter.
+Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for declared places, created) since that date. This endpoint is how a scheduled assistant reads the numbers for the weekly marketing report, and it powers the on-page counter.
 
 ### On the page
 
-- Verified places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay).
-- Total, with a weekly growth line.
+- Above the bars, one row of four numbers: **12** added · **8** active · **1** not seen lately · **3** not verified yet. Each number shows a short hint on hover or tap. Active: "We can see the badge there now." Not seen lately: "We saw it before, but not in the last 30 days." Not verified yet: "Added, but we haven't been able to see it yet. Substack and Medium often hide it from us."
+- Active places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay). A small **Show all added** toggle switches the bars to every added place by label.
 - The opt-in named list as a teaser: the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
-- One plain line under the counter: **"This counts places wearing the badge, not visitors. Each place counts once a day, and only if we can find the badge there."**
+- One plain line under the counter: **"This counts places wearing the badge, not visitors. A place is active while we can see the badge there, through its image loading, a click on it, or by finding it on the page. We show every place that was added, including the ones we can't see."**
 
 ---
 
@@ -366,7 +447,17 @@ One page, mobile-first, one column on phones. A small jump menu at the top. Sect
 1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
 2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
 3. **Why.** Three or four lines from section 1 ("The idea").
-4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)" plus a "This is a product" checkbox. Turnstile. A **Generate** button returns the snippet with a **Copy** button and the theme-swap snippet. A link to download the plain no-tracking badge.
+4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, unticked by default: "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button returns the snippet with a **Copy** button (and, when the list box was ticked, one line: "You asked to be named. Once the badge is found and approved, your place appears on the list."), the key box (below), the theme-swap snippet and the AI assistant prompt. A link to download the plain no-tracking badge.
+
+   **The key box.** Below the snippet and its Copy button, in a light box, and nothing else until a button is pressed:
+
+   > **Keep a key to manage it later?** Optional. Pick any, or skip.
+   >
+   > [Copy link]  [Save picture]  [Add to authenticator]  [Email it to me]
+   >
+   > This key proves the badge is yours. With it you can take your place off Made Openly, or change it as we add features. Keep it private. We can't show it again.
+
+   Nothing must stand between a visitor and their snippet. The page never uses the words TOTP, 2FA, hash or encrypt.
 5. **Counter.** Section 10.
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
@@ -376,9 +467,9 @@ One page, mobile-first, one column on phones. A small jump menu at the top. Sect
 
 A second page, served by the Worker and readable without script, with the same nav, styles and privacy footer as the main page.
 
-- Every named place (`status='verified'`, `listed='yes'`), newest first, 50 to a page with a **Show more** link.
+- Every named place (`status='active'`, `listed='yes'`), newest first, 50 to a page with a **Show more** link.
 - Filter chips by label and by kind; each filter has its own address (`/places?l=mostly-ai&k=repo`).
-- Each row: a bar in the label colour, the place name linking to the place, then label, kind and the date first verified.
+- Each row: a bar in the label colour, the place name linking to the place, then label, kind and the date first seen.
 - Links to listed places open in a new tab with `rel="ugc nofollow noopener"`. The list is user-submitted, so it passes no search credit.
 - **Report** lives in a small "⋯" menu on each row (section 12).
 - No favicons, screenshots or other images fetched from listed places.
@@ -393,9 +484,9 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 - What does each badge mean, and who decides which one fits? (You decide. Section 4.1 meanings.)
 - Is this tracking my visitors? (No. It counts places, not people, and stores no IP addresses.)
 - What exactly do you record? (The place, the badge chosen, and the days it was seen. Nothing about visitors.)
-- How do I remove my badge or my data? (Take the badge off. The next weekly check deletes its data.)
+- How do I remove my badge or my data? ("Take the badge off your page and it stops counting within a month. We keep a small record (the place, the label, the days it was seen), so it counts again if the badge comes back. To remove it completely, open madeopenly.com/manage with your badge key. No key? Write to us and we'll remove it.")
 - Why is there no sign-up?
-- Can I trust the counter? (Once-a-day rule, weekly check, only verified places.)
+- Can I trust the counter? (Once-a-day rule; a place counts only while its badge loads there, is clicked from there, or is found on the page.)
 - Does it work on Substack, GitHub, Medium or Notion? (Yes: paste the page address when you generate the badge.)
 - What about apps, PDFs or videos? (Use the plain badge. It is not counted.)
 - Is it free? Where is the code? (Free. Link to the GitHub repo.)
@@ -410,7 +501,8 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 - We count visits to this page with Cloudflare Web Analytics. It sets no cookies, uses no visitor ID and does not follow you to other sites. The badge itself never runs it.
 - The contact form keeps your name, email and message, used only to reply.
 - Turnstile, a Cloudflare service, protects the forms.
-- To delete a badge's data, remove the badge; it is deleted at the next weekly check. For anything else, use the contact form.
+- A place stops counting when we can no longer see its badge. We keep its small record until you remove it with your badge key, ask us to remove it, or we clear old records.
+- If you ask us to email your badge key, we send it once and do not keep your address. Our mail service keeps a short delivery log.
 - Run by Biz-Automation Co., Ltd., Bangkok, Thailand.
 
 No cookie banner is needed: nothing is stored on the visitor's device. A short legal review before launch is recommended.
@@ -419,14 +511,15 @@ No cookie banner is needed: nothing is stored on the visitor's device. A short l
 
 ## 12. Public list and moderation
 
-Only the public **named list** is moderated. The **counts are never moderated**: every verified place counts, whatever it is.
+Only the public **named list** is moderated. The **counts are never moderated**: every active place counts, whatever it is.
 
 1. Listing is opt-in and off by default (`listed='no'`).
-2. Only places with `status='verified'` can ask to be listed (`POST /api/list`) → `listed='pending'`.
-3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`.
-4. Every listed place on `/places` shows a small **Report** action → `listed='reported'`, hidden until the owner reviews it. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
-5. A removed place keeps counting; it is only hidden from the list.
-6. Review links are signed (HMAC-SHA256 with the `ADMIN_SIGNING_KEY` secret) and expire after 14 days. A link only acts while the place is still in the state it was sent for. Mail goes through Resend from `we@madeopenly.com` to the owner only (`ADMIN_EMAIL` secret). Decided by the owner, 29 Oct 2026.
+2. A maker asks to be named at Generate (the "Name this place on the public list" box), later with the "Ask to be named" form (`POST /api/list`), or on `/manage` with the badge key. A place not seen yet gets `listed='asked'`; its first sighting moves it to `listed='pending'`. A place already seen goes straight to `pending`. Either way it waits for a first sighting, then for the owner's approval.
+3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`. `asked` places never appear in the email.
+4. Every listed place on `/places` shows a small **Report** action → `listed='reported'`, hidden until the owner reviews it. Only `yes` places can be reported. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
+5. A listed place shows only while it is `active`. A dormant place is hidden and keeps its approval; it shows again at its next sighting. `asked` places never show on `/stats.json`, `/places` or the home page.
+6. A removed place keeps counting; it is only hidden from the list, and cannot ask again.
+7. Review links are signed (HMAC-SHA256 with the `ADMIN_SIGNING_KEY` secret) and expire after 14 days. A link only acts while the place is still in the state it was sent for. Mail goes through Resend from `we@madeopenly.com` to the owner (`ADMIN_EMAIL` secret), or once to a maker who asked for their badge key. Decided by the owner, 29 Oct and 1 Nov 2026.
 
 ---
 

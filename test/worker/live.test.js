@@ -51,7 +51,7 @@ describe("GET /b/:token.svg", () => {
   it("binds on the first valid referrer and records the day", async () => {
     const token = await seed();
     await load(token, "https://www.Example.com/post");
-    expect(await row(token)).toMatchObject({ host: "example.com", status: "bound", verify_method: "live" });
+    expect(await row(token)).toMatchObject({ host: "example.com", status: "active", verify_method: "live" });
     expect((await row(token)).bound_at).toBeTruthy();
     expect(await days(token)).toBe(1);
   });
@@ -74,10 +74,12 @@ describe("GET /b/:token.svg", () => {
     expect(await row(token)).toMatchObject({ host: null, status: "new", verify_method: null });
   });
 
-  it("still counts the day when the referrer cannot bind", async () => {
-    const token = await seed();
+  it("draws the badge but records nothing without a usable Referer", async () => {
+    const token = await seed({ host: "example.com", status: "dormant" });
     await load(token, null);
-    expect(await days(token)).toBe(1);
+    await load(token, "http://localhost:3000/");
+    expect(await days(token)).toBe(0);
+    expect((await row(token)).status).toBe("dormant");
   });
 
   it("flags a second host and records nothing for it", async () => {
@@ -99,13 +101,13 @@ describe("GET /b/:token.svg", () => {
   it("keeps verify_method 'address' when a declared badge binds", async () => {
     const token = await seed({ declared_url: "https://blog.example/p/1", verify_method: "address" });
     await load(token, "https://blog.example/p/1");
-    expect(await row(token)).toMatchObject({ host: "blog.example", verify_method: "address", status: "bound" });
+    expect(await row(token)).toMatchObject({ host: "blog.example", verify_method: "address", status: "active" });
   });
 
   it("does not demote a verified token when it is loaded again", async () => {
-    const token = await seed({ host: "example.com", status: "verified", verify_method: "live" });
+    const token = await seed({ host: "example.com", status: "active", verify_method: "live" });
     await load(token, "https://example.com/");
-    expect((await row(token)).status).toBe("verified");
+    expect((await row(token)).status).toBe("active");
   });
 
   it("answers HEAD without binding or recording", async () => {

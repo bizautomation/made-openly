@@ -10,14 +10,16 @@ beforeAll(async () => {
   await db.batch(["badges", "daily", "weekly_counts"].map((t) => db.prepare(`DELETE FROM ${t}`)));
   const rows = [
     // token, label, kind, status, listed, host, declared_url, first_verified
-    ["t01", "mostly-ai", "site", "verified", "yes", "bizat.co", null, "2026-10-26T02:00:00Z"],
-    ["t02", "human-ai", "post", "verified", "yes", null, "https://daemon.substack.com/p/one", "2026-11-02T02:00:00Z"],
-    ["t03", "human-ai", "repo", "verified", "pending", null, "https://github.com/bizautomation/made-openly", "2026-11-09T02:00:00Z"],
-    ["t04", "human-only", "product", "verified", "reported", "tool.example", null, "2026-11-09T02:00:00Z"],
-    ["t05", "human-only", "site", "verified", "removed", "gone.example", null, "2026-11-09T02:00:00Z"],
-    ["t06", "mostly-ai", "site", "bound", "no", "notyet.example", null, null],
+    ["t01", "mostly-ai", "site", "active", "yes", "bizat.co", null, "2026-10-26T02:00:00Z"],
+    ["t02", "human-ai", "post", "active", "yes", null, "https://daemon.substack.com/p/one", "2026-11-02T02:00:00Z"],
+    ["t03", "human-ai", "repo", "active", "pending", null, "https://github.com/bizautomation/made-openly", "2026-11-09T02:00:00Z"],
+    ["t04", "human-only", "product", "active", "reported", "tool.example", null, "2026-11-09T02:00:00Z"],
+    ["t05", "human-only", "site", "active", "removed", "gone.example", null, "2026-11-09T02:00:00Z"],
+    ["t06", "mostly-ai", "site", "new", "no", "notyet.example", null, null],
     ["t07", "human-ai", "site", "flagged", "no", "copy.example", null, null],
     ["t08", "human-ai", "site", "new", "no", null, null, null],
+    ["t09", "mostly-ai", "site", "dormant", "yes", "quiet.example", null, "2026-10-01T02:00:00Z"],
+    ["t10", "human-ai", "post", "declared", "asked", null, "https://x.substack.com/about", null],
   ];
   await db.batch(
     rows.map((r) =>
@@ -55,13 +57,21 @@ describe("/stats.json", () => {
         "human-ai": { site: 0, repo: 1, post: 1, product: 0 },
         "human-only": { site: 1, repo: 0, post: 0, product: 1 },
       },
+      added_total: 7,
+      dormant_total: 1,
+      unverified_total: 1,
+      by_status_label: {
+        active: { "mostly-ai": 1, "human-ai": 2, "human-only": 2 },
+        dormant: { "mostly-ai": 1, "human-ai": 0, "human-only": 0 },
+        unverified: { "mostly-ai": 0, "human-ai": 1, "human-only": 0 },
+      },
       weekly: [
-        { week: "2026-W44", verified: 1 },
-        { week: "2026-W45", verified: 2 },
-        { week: "2026-W46", verified: 5 },
+        { week: "2026-W44", verified: 1, added: 0, dormant: 0, unverified: 0 },
+        { week: "2026-W45", verified: 2, added: 0, dormant: 0, unverified: 0 },
+        { week: "2026-W46", verified: 5, added: 0, dormant: 0, unverified: 0 },
       ],
       new_last_7_days: 3,
-      // Only listed = 'yes': pending, reported and removed places are hidden but still counted.
+      // Only active places with listed = 'yes': pending, asked, reported, removed and dormant ones are hidden.
       listed_total: 2,
       // Newest first.
       listed: [

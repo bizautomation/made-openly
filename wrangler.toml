@@ -22,7 +22,7 @@ TURNSTILE_SITE_KEY = "0x4AAAAAAFp0lfRK9ZmT16dL" # public; the secret is set with
 # Pages a Turnstile token may come from (siteverify hostname). Local dev adds
 # localhost in .dev.vars; it never belongs here.
 TURNSTILE_HOSTNAMES = "madeopenly.com,www.madeopenly.com,madeopenly.bizat.co"
-MAIL_FROM = "Made Openly <we@madeopenly.com>" # Resend sender. RESEND_API_KEY, ADMIN_EMAIL and ADMIN_SIGNING_KEY are secrets
+MAIL_FROM = "Made Openly <we@madeopenly.com>" # Resend sender. RESEND_API_KEY, ADMIN_EMAIL, ADMIN_SIGNING_KEY, KEY_SECRET and GITHUB_TOKEN (optional) are secrets
 
 [[d1_databases]]
 binding = "DB"
@@ -61,6 +61,22 @@ namespace_id = "62803"
 [[ratelimits]]
 name = "RL_LIST"
 namespace_id = "62804"
+  [ratelimits.simple]
+  limit = 3
+  period = 60
+
+# Badge key: open, remove, list (manage page). 3 key emails per IP per
+# minute here; the hourly window is a zone WAF rule like the others.
+[[ratelimits]]
+name = "RL_KEY"
+namespace_id = "62805"
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+[[ratelimits]]
+name = "RL_SENDKEY"
+namespace_id = "62806"
   [ratelimits.simple]
   limit = 3
   period = 60

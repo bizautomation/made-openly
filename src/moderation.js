@@ -59,7 +59,9 @@ async function readJson(request) {
 // The cached /stats.json would show a reported place for up to an hour; drop it.
 export const purgeStats = (env) => (env.STATS_CACHE === "off" ? null : caches.default.delete(new Request(`${ORIGIN}/stats.json`)));
 
-// POST /api/list {token}: a verified place asks to be named.
+// POST /api/list {token}: a place asks to be named. A place that has been
+// seen waits for the owner's approval; one not seen yet waits for its first
+// sighting first, like a place that asked at Generate.
 export async function handleList(request, env) {
   const input = await readJson(request);
   if (!input) return Response.json({ error: "Send the form as JSON." }, { status: 400 });
@@ -70,12 +72,22 @@ export async function handleList(request, env) {
 
   const row = await env.DB.prepare("SELECT status, listed FROM badges WHERE token = ?").bind(input.token).first();
   if (!row) return Response.json({ error: "We couldn't find that badge." }, { status: 404 });
-  if (row.status !== "verified")
-    return Response.json({ error: "Your badge isn't verified yet. New badges are checked every 15 minutes, so try again soon." }, { status: 409 });
   if (row.listed === "removed") return Response.json({ error: "This place can't be named on the list." }, { status: 409 });
+  const listed = await askToList(env.DB, input.token);
+  return Response.json({ ok: true, listed });
+}
 
-  await env.DB.prepare("UPDATE badges SET listed = 'pending' WHERE token = ? AND listed = 'no'").bind(input.token).run();
-  return Response.json({ ok: true });
+// 'no' or 'asked' becomes 'pending' if the place was seen, else 'asked'.
+// Any other listing state is left alone. Returns the state now.
+export async function askToList(db, token) {
+  await db
+    .prepare(
+      `UPDATE badges SET listed = CASE WHEN status IN ('active', 'dormant') THEN 'pending' ELSE 'asked' END
+       WHERE token = ? AND listed IN ('no', 'asked')`,
+    )
+    .bind(token)
+    .run();
+  return (await db.prepare("SELECT listed FROM badges WHERE token = ?").bind(token).first())?.listed;
 }
 
 // POST /api/report {place}: hides a listed place at once, until the owner reviews it.
@@ -128,7 +140,15 @@ export async function sendReviewEmail(env, now = new Date()) {
   const { results } = await env.DB.prepare(
     "SELECT token, host, declared_url, label, place_kind, listed FROM badges WHERE listed IN ('pending', 'reported') ORDER BY listed, first_verified",
   ).all();
-  if (!results.length) return 0;
+  // Not seen for a year: the owner decides whether to clear them. No button.
+  const yearAgo = new Date(now.getTime() - 365 * DAY_MS).toISOString();
+  const { n: stale } = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM badges
+     WHERE (status = 'dormant' AND last_seen < ?) OR (status = 'declared' AND created_at < ?)`,
+  )
+    .bind(yearAgo.slice(0, 10), yearAgo)
+    .first();
+  if (!results.length && !stale) return 0;
 
   const link = async (token, action) => `${ORIGIN}/admin/review?k=${await signReview(env.ADMIN_SIGNING_KEY, token, action, now)}`;
   const lines = [];
@@ -146,7 +166,8 @@ export async function sendReviewEmail(env, now = new Date()) {
       );
     }
   }
-  lines.push(`Links expire in ${LINK_DAYS} days.`);
+  if (results.length) lines.push(`Links expire in ${LINK_DAYS} days.`, "");
+  lines.push(`Places with no sighting for 12+ months: ${stale}`);
   await sendMail(env, { subject: `Made Openly: ${results.length} to review`, text: lines.join("\n") });
   return results.length;
 }

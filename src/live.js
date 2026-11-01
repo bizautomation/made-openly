@@ -1,5 +1,6 @@
 import { badge, neutralBadge, parseSettings } from "./badge.js";
 import { withinLimit } from "./generate.js";
+import { recordDay } from "./sighting.js";
 
 export const TOKEN_PATH = /^\/b\/([A-Za-z0-9]{16,64})\.svg$/;
 const LIVE_CACHE = "public, max-age=300";
@@ -38,8 +39,6 @@ export function bindableHost(referer) {
   return host;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 // GET /b/:token.svg (SPEC.md 8.2). Records the place and the day, never the visitor.
 export async function handleLiveBadge(request, env, token, url) {
   if (!(await withinLimit(env.RL_BADGE, request))) return new Response("Too many requests", { status: 429 });
@@ -58,14 +57,14 @@ export async function handleLiveBadge(request, env, token, url) {
   if (request.method === "HEAD") return svg(body());
 
   const host = bindableHost(request.headers.get("Referer"));
-  let record = true;
+  // Without a usable Referer the load cannot say where it is: draw, record nothing.
+  let record = host !== null;
   if (host && !row.host) {
     // Bind only if still unbound, so two first loads cannot both bind.
     const now = new Date().toISOString();
     const res = await db
       .prepare(
-        `UPDATE badges SET host = ?, bound_at = ?, verify_method = COALESCE(verify_method, 'live'),
-           status = CASE WHEN status = 'new' THEN 'bound' ELSE status END
+        `UPDATE badges SET host = ?, bound_at = ?, verify_method = COALESCE(verify_method, 'live')
          WHERE token = ? AND host IS NULL`,
       )
       .bind(host, now, token)
@@ -81,7 +80,8 @@ export async function handleLiveBadge(request, env, token, url) {
     await flag(db, token);
   }
 
-  if (record) await db.prepare("INSERT OR IGNORE INTO daily (token, day) VALUES (?, ?)").bind(token, today()).run();
+  // A load from the place's own host is a sighting (SPEC.md 8.3).
+  if (record) await recordDay(db, token);
 
   return svg(body());
 }

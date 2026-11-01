@@ -10,7 +10,7 @@ const hex = (s) => [...s].map((c) => c.charCodeAt(0).toString(16).padStart(2, "0
 const page = (body) => new Response(`<!doctype html><html><body>${body}</body></html>`, { headers: { "Content-Type": "text/html" } });
 
 async function seed(token, cols) {
-  const row = { label: "human-ai", style: "light", size: "large", variant: "robot", place_kind: "site", status: "bound", created_at: daysAgo(60), ...cols };
+  const row = { label: "human-ai", style: "light", size: "large", variant: "robot", place_kind: "site", status: "active", last_seen: daysAgo(3).slice(0, 10), created_at: daysAgo(60), ...cols };
   const keys = Object.keys(row);
   await env.DB.prepare(`INSERT INTO badges (token, ${keys.join(", ")}) VALUES (?, ${keys.map(() => "?").join(", ")})`)
     .bind(token, ...keys.map((k) => row[k]))
@@ -42,26 +42,21 @@ describe("finding the token", () => {
     await seed(T.link, { host: "example.com", verify_method: "live", bound_at: daysAgo(3) });
     pages["https://example.com/"] = () => page(`<footer><a href="https://madeopenly.com/?t=${T.link}" title="Made Openly: Human + AI">badge</a></footer>`);
     await run();
-    expect(await row(T.link)).toMatchObject({ status: "verified", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
+    expect(await row(T.link)).toMatchObject({ status: "active", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
   });
 
   it("in an img src", async () => {
     await seed(T.img, { host: "blog.example", bound_at: daysAgo(3) });
     pages["https://blog.example/"] = () => page(`<img src="https://madeopenly.com/b/${T.img}.svg?l=human-ai&amp;s=light" width="176" height="62">`);
     await run();
-    expect((await row(T.img)).status).toBe("verified");
+    expect((await row(T.img)).status).toBe("active");
   });
 
-  it("in a real-shaped GitHub camo URL on a declared repo", async () => {
+  it("decodes a real-shaped GitHub camo URL", () => {
     const original = `https://madeopenly.com/b/${T.camo}.svg?l=mostly-ai&s=light&z=large&v=robot&m=robot`;
     const camo = `https://camo.githubusercontent.com/9f2e1c3b8a7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f/${hex(original)}`;
     expect(decodeCamoUrls(`<img src="${camo}">`)).toEqual([original]);
-    await seed(T.camo, { declared_url: "https://github.com/bizautomation/made-openly", verify_method: "address", place_kind: "repo", status: "new" });
-    // The README link is unwrapped, but test the image alone: the camo src is the only trace.
-    pages["https://github.com/bizautomation/made-openly"] = () =>
-      page(`<article class="markdown-body"><p><a target="_blank" rel="noopener noreferrer nofollow" href="https://github.com/bizautomation/made-openly"><img src="${camo}" alt="Made Openly: Mostly AI" data-canonical-src="" style="max-width: 100%;"></a></p></article>`);
-    await run();
-    expect((await row(T.camo)).status).toBe("verified");
+    expect(pageHasToken(`<img src="${camo}">`, T.camo)).toBe(true);
   });
 
   it("in a percent-encoded image proxy URL (Substack-style)", async () => {
@@ -69,7 +64,7 @@ describe("finding the token", () => {
     const src = `https://substackcdn.com/image/fetch/w_176,c_limit/${encodeURIComponent(`https://madeopenly.com/b/${T.proxy}.svg?l=human-ai`)}`;
     pages["https://someone.substack.com/p/hello"] = () => page(`<img src="${src}">`);
     await run();
-    expect((await row(T.proxy)).status).toBe("verified");
+    expect((await row(T.proxy)).status).toBe("active");
   });
 
   it("does not match a longer token that starts with this one", () => {
@@ -81,7 +76,7 @@ describe("finding the token", () => {
     await seed(T.link, { host: "example.com", status: "flagged", bound_at: daysAgo(3) });
     pages["https://example.com/"] = () => page(`<a href="https://madeopenly.com/?t=${T.link}">x</a>`);
     await run();
-    expect((await row(T.link)).status).toBe("verified");
+    expect((await row(T.link)).status).toBe("active");
   });
 
   it("sends the polite User-Agent", async () => {
@@ -93,45 +88,42 @@ describe("finding the token", () => {
 });
 
 describe("removal, release and cleanup", () => {
-  it("deletes a verified place whose badge was removed, with its daily rows", async () => {
-    await seed(T.link, { host: "example.com", status: "verified", first_verified: daysAgo(14), bound_at: daysAgo(20) });
+  it("never deletes a place whose badge is gone or whose page is 404", async () => {
+    await seed(T.link, { host: "example.com", status: "active", first_verified: daysAgo(14), bound_at: daysAgo(20) });
+    await seed(T.img, { declared_url: "https://example.com/gone", status: "active", first_verified: daysAgo(14) });
     pages["https://example.com/"] = () => page("<p>No badge here any more.</p>");
-    await run();
-    expect(await row(T.link)).toBeNull();
-    expect(await days(T.link)).toBe(0);
-  });
-
-  it("deletes a verified place whose page is gone (404)", async () => {
-    await seed(T.link, { declared_url: "https://example.com/gone", status: "verified", first_verified: daysAgo(14) });
-    await run();
-    expect(await row(T.link)).toBeNull();
+    const summary = await run();
+    expect(await row(T.link)).toMatchObject({ status: "active", host: "example.com" });
+    expect(await row(T.img)).toMatchObject({ status: "active" });
+    expect(await days(T.link)).toBe(1);
+    expect(summary.missing).toBe(2);
   });
 
   it("keeps a verified place when the fetch fails or the server errors", async () => {
-    await seed(T.link, { host: "down.example", status: "verified", first_verified: daysAgo(14), bound_at: daysAgo(20) });
-    await seed(T.img, { host: "broken.example", status: "verified", first_verified: daysAgo(14), bound_at: daysAgo(20) });
+    await seed(T.link, { host: "down.example", status: "active", first_verified: daysAgo(14), bound_at: daysAgo(20) });
+    await seed(T.img, { host: "broken.example", status: "active", first_verified: daysAgo(14), bound_at: daysAgo(20) });
     pages["https://down.example/"] = () => {
       throw new TypeError("network down");
     };
     pages["https://broken.example/"] = () => new Response("oops", { status: 503 });
     const summary = await run();
-    expect((await row(T.link)).status).toBe("verified");
-    expect((await row(T.img)).status).toBe("verified");
+    expect((await row(T.link)).status).toBe("active");
+    expect((await row(T.img)).status).toBe("active");
     expect(summary.unknown).toBe(2);
   });
 
-  it("releases a token never found and bound over 30 days ago", async () => {
-    await seed(T.link, { host: "example.com", verify_method: "live", bound_at: daysAgo(31) });
+  it("never releases a bound host, even when not found for over 30 days", async () => {
+    await seed(T.link, { host: "example.com", verify_method: "live", bound_at: daysAgo(31), last_seen: daysAgo(31).slice(0, 10) });
     pages["https://example.com/"] = () => page("<p>nothing</p>");
     await run();
-    expect(await row(T.link)).toMatchObject({ host: null, bound_at: null, status: "new", verify_method: null });
+    expect(await row(T.link)).toMatchObject({ host: "example.com", verify_method: "live", status: "dormant" });
   });
 
   it("keeps a never-found token bound under 30 days ago", async () => {
     await seed(T.link, { host: "example.com", bound_at: daysAgo(10) });
     pages["https://example.com/"] = () => page("<p>nothing</p>");
     await run();
-    expect(await row(T.link)).toMatchObject({ host: "example.com", status: "bound" });
+    expect(await row(T.link)).toMatchObject({ host: "example.com", status: "active" });
   });
 
   it("deletes a token never bound or declared after 30 days, keeps a newer one", async () => {
@@ -161,8 +153,8 @@ describe("batches and snapshot", () => {
     await run();
     const { results } = await env.DB.prepare("SELECT * FROM weekly_counts ORDER BY label").all();
     expect(results).toEqual([
-      { week: "2026-W45", label: "human-ai", kind: "site", verified: 1 },
-      { week: "2026-W45", label: "mostly-ai", kind: "site", verified: 1 },
+      { week: "2026-W45", label: "human-ai", kind: "site", verified: 1, added: 1, dormant: 0, unverified: 0 },
+      { week: "2026-W45", label: "mostly-ai", kind: "site", verified: 1, added: 1, dormant: 0, unverified: 0 },
     ]);
   });
 
@@ -188,22 +180,22 @@ describe("15-minute check of new places", () => {
   it("verifies a new place found within 7 days", async () => {
     await seed(T.link, { declared_url: "https://example.com/about", status: "new", created_at: daysAgo(1) });
     pages["https://example.com/about"] = () => page(link(T.link));
-    expect(await runNew()).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { 200: 1 } });
-    expect(await row(T.link)).toMatchObject({ status: "verified", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
+    expect(await runNew()).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { 200: 1 }, dormant: 0 });
+    expect(await row(T.link)).toMatchObject({ status: "active", first_verified: NOW.toISOString(), last_verified: NOW.toISOString() });
   });
 
   it("never deletes or releases, even when the badge is missing", async () => {
-    await seed(T.link, { host: "example.com", status: "bound", bound_at: daysAgo(2) });
-    expect(await runNew()).toEqual({ checked: 1, verified: 0, missing: 1, unknown: 0, statuses: { 404: 1 } });
-    expect(await row(T.link)).toMatchObject({ host: "example.com", status: "bound" });
+    await seed(T.link, { declared_url: "https://example.com/about", status: "declared", last_seen: null, created_at: daysAgo(2) });
+    expect(await runNew()).toEqual({ checked: 1, verified: 0, missing: 1, unknown: 0, statuses: { 404: 1 }, dormant: 0 });
+    expect(await row(T.link)).toMatchObject({ declared_url: "https://example.com/about", status: "declared" });
     expect(await days(T.link)).toBe(1);
   });
 
   it("skips verified places, places older than 7 days and unplaced tokens", async () => {
-    await seed(T.link, { host: "a.example", status: "verified", first_verified: daysAgo(1), bound_at: daysAgo(1) });
-    await seed(T.img, { host: "b.example", status: "bound", bound_at: daysAgo(8) });
+    await seed(T.link, { host: "a.example", status: "active", first_verified: daysAgo(1), bound_at: daysAgo(1) });
+    await seed(T.img, { host: "b.example", status: "active", bound_at: daysAgo(8) });
     await seed(T.camo, { status: "new", created_at: daysAgo(1) });
-    expect(await runNew()).toEqual({ checked: 0, verified: 0, missing: 0, unknown: 0, statuses: {} });
+    expect(await runNew()).toEqual({ checked: 0, verified: 0, missing: 0, unknown: 0, statuses: {}, dormant: 0 });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -213,7 +205,7 @@ describe("15-minute check of new places", () => {
     pages["https://example.com/about"] = () => replies.shift();
     const waits = [];
     const summary = await runNewCheck(env, { now: NOW, sleep: async (ms) => waits.push(ms) });
-    expect(summary).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { "429-first": 1, 200: 1 } });
+    expect(summary).toEqual({ checked: 1, verified: 1, missing: 0, unknown: 0, statuses: { "429-first": 1, 200: 1 }, dormant: 0 });
     expect(waits).toEqual([5000]);
   });
 
@@ -222,7 +214,7 @@ describe("15-minute check of new places", () => {
     pages["https://example.com/about"] = () => new Response("slow down", { status: 429 });
     const waits = [];
     const summary = await runNewCheck(env, { now: NOW, sleep: async (ms) => waits.push(ms) });
-    expect(summary).toEqual({ checked: 1, verified: 0, missing: 0, unknown: 1, statuses: { "429-first": 1, 429: 1 } });
+    expect(summary).toEqual({ checked: 1, verified: 0, missing: 0, unknown: 1, statuses: { "429-first": 1, 429: 1 }, dormant: 0 });
     expect(waits).toEqual([2000]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -241,7 +233,7 @@ describe("15-minute check of new places", () => {
     const ctx = createExecutionContext();
     await worker.scheduled(createScheduledController({ cron: "*/15 * * * *" }), env, ctx);
     await waitOnExecutionContext(ctx);
-    expect((await row(T.link)).status).toBe("verified");
+    expect((await row(T.link)).status).toBe("active");
     expect(await row(T.img)).not.toBeNull(); // weekly cleanup did not run
   });
 });

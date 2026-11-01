@@ -22,6 +22,7 @@ export default defineConfig({
                 RESEND_API_KEY: "test-resend-key",
                 ADMIN_EMAIL: "owner@example.com",
                 ADMIN_SIGNING_KEY: "test-signing-key",
+                KEY_SECRET: "test-key-secret",
               },
             },
           })),
