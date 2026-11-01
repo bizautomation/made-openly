@@ -278,6 +278,7 @@ No IP address, user agent, visitor identifier or email address is stored anywher
 | GET | `/manage` | Manage a badge with its key (section 8.5). |
 | POST | `/api/manage`, `/api/manage/remove`, `/api/manage/list` | Open, remove or list a badge with its key or code. |
 | POST | `/api/send-key` | Email a badge key once. |
+| GET | `/og.png`, `/sitemap.xml`, `/robots.txt` | Share image, sitemap and its robots line (section 11.4). |
 
 ### 8.1 `POST /api/generate`
 
@@ -481,6 +482,18 @@ A second page, served by the Worker and readable without script, with the same n
 - **Report** lives in a small "⋯" menu on each row (section 12).
 - No favicons, screenshots or other images fetched from listed places.
 - A closing line links to the "Ask to be named" form on the main page.
+
+### 11.4 Link previews and search (owner, 1 Nov 2026)
+
+Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static tags only: no cookies, no script, nothing that reads visitors.
+
+- **Share image** `/og.png`: 1200 x 630 PNG under 300 KB, drawn once by `scripts/render-og.js` from `reference/badges.html`. Paper background, the three large light robot badges (Mostly AI, Human + AI, Human only) stacked and centred, each 470 px wide, 26 px apart, with a soft shadow. No other text. Served by the Worker with `Cache-Control: public, max-age=604800`.
+- **Tags on `/` and `/places`:** `description`, `og:type` website, `og:site_name`, `og:url`, `og:title`, `og:description`, `og:image` with width, height and alt, and the matching `twitter:` tags with `summary_large_image`. `/` uses the title "Made Openly: say how much AI helped make your work" and the description "A free badge that says how much AI helped make your work. Three labels: Mostly AI, Human + AI, Human only. We count places, never visitors." `/places` has its own title and description and the same image.
+- **Canonical:** `https://madeopenly.com/` and `https://madeopenly.com/places`, never with a query string, so `/?t=TOKEN` points back to `/`.
+- **JSON-LD:** a `WebSite` object on `/` only.
+- **`/sitemap.xml`:** `/` and `/places` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
+- **`/robots.txt`:** the Worker serves one line, `Sitemap: https://madeopenly.com/sitemap.xml`. Cloudflare's managed robots.txt (content signals) is set on the zone and is not changed here.
+- `/manage` has no share tags and keeps `noindex`.
 
 ### Style
 

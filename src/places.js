@@ -4,6 +4,7 @@
 // rel="ugc nofollow": the list is user-submitted and must not sell backlinks.
 import { LABEL_SLUGS, labelText } from "./badge.js";
 import { KINDS, placeName, placeUrl, placesCte } from "./stats.js";
+import { PLACES, headTags } from "./share.js";
 
 export const PAGE_SIZE = 50;
 const LABEL_ORDER = ["human-only", "human-ai", "mostly-ai"];
@@ -86,7 +87,7 @@ export async function handlePlaces(env, url, shell, csp) {
   const pager = page * PAGE_SIZE < total ? `<p class="pager"><a class="btn quiet" href="${esc(href({ l: label, k: kind, p: String(page + 1) }))}">Show more</a></p>` : "";
   const count = `${total} named${filtered ? " for this filter" : ""}`;
 
-  const html = `${shell.head}${PLACES_CSS}</style>
+  const html = `${shell.head.replace(/<title>.*<\/title>/, `<title>${PLACES.title}</title>`).replace("__HEAD_TAGS__", headTags(PLACES))}${PLACES_CSS}</style>
 </head>
 <body>
 ${shell.nav}
