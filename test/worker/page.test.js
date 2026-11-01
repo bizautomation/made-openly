@@ -45,6 +45,8 @@ describe("FAQ", () => {
     // The same words as the counter.
     for (const word of ['"added"', '"not verified yet"', '"not seen lately"']) expect(faq).toContain(word);
     expect(html).toContain('<a href="#faq">FAQ</a>');
+    expect(html.match(/<h1>/g)).toHaveLength(1);
+    expect(html).toContain("<h1>Say how much AI helped make your work.</h1>");
     expect(html).toContain('Of these, <b id="n-noid">0</b> came without a token');
   });
 });
