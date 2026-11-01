@@ -1,6 +1,7 @@
 // The Worker check (SPEC.md 8.3), one of the two signals that see a place.
 // The Monday cron looks at every place; a 15-minute cron looks at new ones.
 import { markSeen, sweepDormant } from "./sighting.js";
+import { placesCte } from "./stats.js";
 
 export const USER_AGENT = "MadeOpenlyVerifier/1.0 (+https://madeopenly.com/#faq)";
 const DAY_MS = 86_400_000;
@@ -220,9 +221,10 @@ export async function runWeeklyCheck(env, { now = new Date(), sleep = sleepMs } 
 export async function writeWeeklySnapshot(db, week) {
   const { results } = await db
     .prepare(
-      `SELECT label, place_kind AS kind,
+      `${placesCte("status IN ('active', 'dormant', 'declared')")}
+       SELECT label, place_kind AS kind,
          SUM(status = 'active') AS active, SUM(status = 'dormant') AS dormant, SUM(status = 'declared') AS unverified
-       FROM badges WHERE status IN ('active', 'dormant', 'declared') GROUP BY label, place_kind`,
+       FROM places GROUP BY label, place_kind`,
     )
     .all();
   const stmts = [db.prepare("DELETE FROM weekly_counts WHERE week = ?").bind(week)];

@@ -3,7 +3,7 @@
 // without script and can be read by search engines. Links carry
 // rel="ugc nofollow": the list is user-submitted and must not sell backlinks.
 import { LABEL_SLUGS, labelText } from "./badge.js";
-import { KINDS, placeName, placeUrl } from "./stats.js";
+import { KINDS, placeName, placeUrl, placesCte } from "./stats.js";
 
 export const PAGE_SIZE = 50;
 const LABEL_ORDER = ["human-only", "human-ai", "mostly-ai"];
@@ -18,10 +18,11 @@ export async function listPlaces(db, { label = null, kind = null, page = 1 } = {
   const binds = [];
   if (label) where.push("label = ?") && binds.push(label);
   if (kind) where.push("place_kind = ?") && binds.push(kind);
-  const sql = where.join(" AND ");
-  const { n: total } = await db.prepare(`SELECT COUNT(*) AS n FROM badges WHERE ${sql}`).bind(...binds).first();
+  // One row per place, even if it wears several badges.
+  const cte = placesCte(where.join(" AND "));
+  const { n: total } = await db.prepare(`${cte} SELECT COUNT(*) AS n FROM places`).bind(...binds).first();
   const { results } = await db
-    .prepare(`SELECT host, declared_url, label, place_kind, first_verified FROM badges WHERE ${sql} ORDER BY first_verified DESC, token LIMIT ? OFFSET ?`)
+    .prepare(`${cte} SELECT host, declared_url, label, place_kind, first_verified FROM places ORDER BY first_verified DESC, token LIMIT ? OFFSET ?`)
     .bind(...binds, PAGE_SIZE, (page - 1) * PAGE_SIZE)
     .all();
   return { total, rows: results };

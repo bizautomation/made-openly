@@ -201,3 +201,46 @@ describe("counts and the Monday email", () => {
     expect(sent[0].text).not.toMatch(/delete|remove/i);
   });
 });
+
+describe("counts are per place, not per token", () => {
+  it("two badges declared for the same address count once", async () => {
+    await seed({ declared_url: "https://x.substack.com/about", status: "declared" });
+    await seed({ declared_url: "https://x.substack.com/about", status: "declared" });
+    const s = await buildStats(env.DB);
+    expect([s.added_total, s.unverified_total]).toEqual([1, 1]);
+  });
+
+  it("an active badge and a declared one at the same place count once, as active", async () => {
+    await seed({ host: "blog.example", status: "active", last_seen: today(), first_verified: daysAgo(1), label: "mostly-ai" });
+    await seed({ declared_url: "https://www.blog.example/", status: "declared", label: "human-ai" });
+    const s = await buildStats(env.DB);
+    expect([s.added_total, s.total_verified, s.unverified_total]).toEqual([1, 1, 0]);
+    expect(s.by_label["mostly-ai"]).toBe(1);
+  });
+
+  it("two footer badges on one host count once; another page is another place", async () => {
+    await seed({ host: "site.example", status: "active", last_seen: today(), first_verified: daysAgo(1) });
+    await seed({ host: "site.example", status: "active", last_seen: today(), first_verified: daysAgo(2) });
+    await seed({ declared_url: "https://site.example/about", status: "active", last_seen: today(), first_verified: daysAgo(1) });
+    const s = await buildStats(env.DB);
+    expect(s.total_verified).toBe(2);
+  });
+
+  it("a place listed twice shows once on the list and on /places", async () => {
+    for (const d of [1, 2]) await seed({ host: "dup.example", status: "active", listed: "yes", last_seen: today(), first_verified: daysAgo(d) });
+    const s = await buildStats(env.DB);
+    expect(s.listed.map((p) => p.place)).toEqual(["dup.example"]);
+    expect(s.listed_total).toBe(1);
+    const html = await (await call("/places")).text();
+    expect(html.match(/href="https:\/\/dup\.example\/"/g)).toHaveLength(1);
+    expect(html).toContain("1 named");
+  });
+
+  it("the weekly snapshot counts places too", async () => {
+    await seed({ declared_url: "https://x.substack.com/about", status: "declared" });
+    await seed({ declared_url: "https://x.substack.com/about/", status: "declared" });
+    await runWeeklyCheck(env, { now: NOW, sleep: async () => {} });
+    const { results } = await env.DB.prepare("SELECT SUM(added) AS added, SUM(unverified) AS unverified FROM weekly_counts").all();
+    expect(results[0]).toEqual({ added: 1, unverified: 1 });
+  });
+});
