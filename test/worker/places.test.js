@@ -92,3 +92,14 @@ describe("home page teaser", () => {
     expect(html).toContain('rel="ugc nofollow noopener"');
   });
 });
+
+describe("GitHub repo link", () => {
+  const REPO = '<a href="https://github.com/bizautomation/made-openly">';
+  it.each(["/", "/places"])("%s has it in the nav and the footer", async (path) => {
+    const html = await (await call(path)).text();
+    const nav = html.slice(html.indexOf("<nav"), html.indexOf("</nav>"));
+    const footer = html.slice(html.indexOf('<footer id="privacy">'), html.indexOf("</footer>"));
+    expect(nav).toContain(`${REPO}GitHub</a>`);
+    expect(footer).toContain(`Open source (MIT). ${REPO}Code on GitHub</a>`);
+  });
+});
