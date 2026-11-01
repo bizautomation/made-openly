@@ -458,6 +458,7 @@ One page, mobile-first, one column on phones. A small jump menu at the top. Sect
 4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, unticked by default: "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button shows the result, calm and short:
 
    - "✓ Your badge is ready", the snippet and one main button, **Copy badge**. When the list box was ticked, one line: "You asked to be named. Once the badge is found and approved, your place appears on the list."
+   - A row, **"On Substack, Medium or Notion?"**, open when the address is a Substack or Medium page, closed otherwise. Their editors don't take HTML, so it gives four steps: download the badge PNG, add it as an image, link the image to `https://madeopenly.com/?t=TOKEN` (with Copy), and set the alt text "Made Openly: <label>" (with Copy). "It counts when a reader clicks it, or when we find the link on your page."
    - A closed row, **"Want to remove or change it later?"** with "Save a key" under it. Opened, it shows one line, "You'll need it to remove or change this badge. We only show it now.", and four buttons: Copy link, Save picture, Authenticator app, Email it to me (section 8.5).
    - A closed row, **"More ways to add it"**, holding the light/dark theme-swap snippet and the AI assistant prompt.
 
@@ -491,7 +492,7 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 - How do I remove my badge or my data? ("Take the badge off your page and it stops counting within a month. We keep a small record (the place, the label, the days it was seen), so it counts again if the badge comes back. To remove it completely, open madeopenly.com/manage with your badge key. No key? Write to us and we'll remove it.")
 - Why is there no sign-up?
 - Can I trust the counter? (Once-a-day rule; a place counts only while its badge loads there, is clicked from there, or is found on the page.)
-- Does it work on Substack, GitHub, Medium or Notion? (Yes: paste the page address when you generate the badge.)
+- Does it work on Substack, GitHub, Medium or Notion? (Yes: paste the page address when you generate the badge. GitHub takes the code; on Substack, Medium and Notion add the badge PNG as an image linked to the badge link.)
 - What about apps, PDFs or videos? (Use the plain badge. It is not counted.)
 - Is it free? Where is the code? (Free. Link to the GitHub repo.)
 - Can I design a mascot? (Yes. Link to CONTRIBUTING.md.)
