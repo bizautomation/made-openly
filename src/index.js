@@ -2,7 +2,7 @@ import { badge, labelText, parseSettings } from "./badge.js";
 import { handleGenerate, withinLimit } from "./generate.js";
 import { TOKEN_PATH, bindableHost, handleLiveBadge } from "./live.js";
 import { handleManage, handleManageList, handleRemove, handleSendKey, managePage } from "./manage.js";
-import { recordDay } from "./sighting.js";
+import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
@@ -73,7 +73,7 @@ async function page(request, env, ctx, url) {
   for (const [slug, cases] of Object.entries(EXAMPLES)) html = html.replace(`__EXAMPLES_${slug}__`, cases.map((c) => `<li>${c}</li>`).join(""));
   const token = url.searchParams.get("t");
   const row = token && /^[A-Za-z0-9]{16,64}$/.test(token)
-    ? await env.DB.prepare("SELECT label, host, declared_url FROM badges WHERE token = ?").bind(token).first()
+    ? await env.DB.prepare("SELECT label, host, declared_url, last_seen FROM badges WHERE token = ?").bind(token).first()
     : null;
   html = html.replace("__BADGE_NOTE__", badgeNote(row));
   if (row && request.method === "GET") await badgeClick(request, env, token, row);
@@ -111,6 +111,7 @@ async function badgeClick(request, env, token, row) {
     declaredHost = row.declared_url ? new URL(row.declared_url).hostname.toLowerCase().replace(/^www\./, "") : null;
   } catch {}
   if (from !== row.host && from !== declaredHost) return;
+  if (row.last_seen === day()) return; // already seen today: no write
   if (!(await withinLimit(env.RL_BADGE, request))) return;
   await recordDay(env.DB, token);
 }
@@ -157,7 +158,7 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/generate") return handleGenerate(request, env);
   if (method === "GET" && pathname === "/stats.json") return handleStats(request, env, ctx, url);
   const live = method === "GET" && TOKEN_PATH.exec(pathname);
-  if (live) return handleLiveBadge(request, env, live[1], url);
+  if (live) return handleLiveBadge(request, env, live[1], url, live[2]);
 
   return new Response("Not found", { status: 404 });
 }
