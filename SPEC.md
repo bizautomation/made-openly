@@ -407,7 +407,9 @@ Every place that was **added** (it has a bound host or a declared address) is sh
 - **Not seen lately:** status `dormant`.
 - **Not verified yet:** status `declared`.
 
-**Added** = active + not seen lately + not verified yet. Tokens generated but never placed are not added. Each place is seen once a day at most (`daily` table). Visits are never counted or shown.
+**Added** = active + not seen lately + not verified yet. Tokens generated but never placed are not added.
+
+**Counts are per place, not per token.** Several badges at the same place count once: the key is the declared address without `https://` and a trailing slash, or else the bound host, lowercased and without `www.`. The place takes the status and label of its most-seen badge (active, then dormant, then declared; then the latest sighting). A different page on the same site (`site.example/about`) is a different place. This applies to every number, `/stats.json`, `/places`, the named list and the weekly snapshot. Duplicates stay in the database and are not deleted. (Owner, 1 Nov 2026.) Each place is seen once a day at most (`daily` table). Visits are never counted or shown.
 
 ### `/stats.json` (public, no auth, cached ~1 hour)
 
