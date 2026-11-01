@@ -1,11 +1,12 @@
 import { badge, labelText, parseSettings } from "./badge.js";
 import { handleGenerate, withinLimit } from "./generate.js";
-import { TOKEN_PATH, bindableHost, handleLiveBadge } from "./live.js";
+import { LIVE_CACHE, TOKEN_PATH, bindableHost, handleLiveBadge } from "./live.js";
 import { handleManage, handleManageList, handleRemove, handleSendKey, managePage } from "./manage.js";
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
 import { HOME, headTags, shareImage, sitemap } from "./share.js";
+import { recordTokenless } from "./tokenless.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, purgeStats, sendReviewEmail } from "./moderation.js";
@@ -35,14 +36,19 @@ export function settingsFromQuery(params) {
   });
 }
 
-// GET /badge.svg: preview for the picker and the plain no-tracking download.
-// No token, never records anything.
-function previewBadge(url) {
+// GET /badge.svg: the picker preview, the plain download, and a badge with
+// no token (SPEC.md 8.6). Loaded on another site with a label, it counts for
+// that site's host and label, once a day. The picker on this site, a
+// download, a HEAD request, or a load with no usable Referer records nothing.
+async function plainBadge(request, env, url) {
   const s = settingsFromQuery(url.searchParams);
   if (!s) return new Response("Unknown badge settings", { status: 400 });
-  const res = svgResponse(badge(s.size, s.style, s.label, s.variant), "public, max-age=86400");
-  if (url.searchParams.has("download"))
-    res.headers.set("Content-Disposition", `attachment; filename="made-openly-${s.label}-${s.style}-${s.size}.svg"`);
+  const download = url.searchParams.has("download");
+  const host = download || !url.searchParams.has("l") ? null : bindableHost(request.headers.get("Referer"));
+  // Short cache on other sites, so loads keep reaching the Worker.
+  const res = svgResponse(badge(s.size, s.style, s.label, s.variant), host ? LIVE_CACHE : "public, max-age=86400");
+  if (download) res.headers.set("Content-Disposition", `attachment; filename="made-openly-${s.label}-${s.style}-${s.size}.svg"`);
+  if (host && request.method === "GET" && (await withinLimit(env.RL_BADGE, request))) await recordTokenless(env.DB, host, s.label);
   return res;
 }
 
@@ -150,7 +156,7 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/manage/list") return handleManageList(request, env, ctx);
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
-  if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
+  if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
   if (method === "GET" && pathname === "/sitemap.xml") return sitemap();
   if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);

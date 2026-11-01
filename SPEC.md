@@ -268,7 +268,7 @@ No IP address, user agent, visitor identifier or email address is stored anywher
 | GET | `/` | The single page (section 11). |
 | POST | `/api/generate` | Create a token, return the snippet. |
 | GET | `/b/:token.svg`, `/b/:token.png` | Serve a badge and record the day. |
-| GET | `/badge.svg` | Preview only (picker). Same params, no token, never records. |
+| GET | `/badge.svg` | The picker preview, the plain download, and a badge with no token: loaded on another site with a label, it counts by host and label (section 8.6). |
 | GET | `/stats.json` | Public counter data (section 10). |
 | POST | `/api/list` | Ask for a place to be named on the public list. |
 | POST | `/api/report` | Report a listed place. |
@@ -298,7 +298,7 @@ Input: `label, style, size, variant, mascot, declared_url (optional), is_product
 2. Draw the SVG. The label always comes from storage, since it is what the counter counts. The look comes from the query string: `s` style, `z` size, `v` variant, so a site can swap themes without a new token. A missing or invalid value falls back to the stored setting. (Decided by the owner, 29 Oct 2026.)
 3. Read the `Referer` header. Take its host. If it is missing, `localhost`, an IP address, or a known preview host (`*.pages.dev`, `*.vercel.app`, `*.netlify.app` previews, `127.0.0.1`, etc.), draw the badge and record nothing.
 4. If the token has no host yet and the referrer host is valid: bind it (`host`, `bound_at`, `verify_method='live'`).
-5. If the token is bound to host A and the referrer is host B: record nothing, and set `status='flagged'` (someone copied another site's snippet).
+5. If the token is bound to host A and the referrer is host B (someone copied another site's snippet): record nothing for the token, and count the load as a place with no token for host B and the token's label, marked copied (section 8.6). The place on host A is never touched. (Owner, 1 Nov 2026. Until then this set `status='flagged'`.)
 6. A load from the bound host is a sighting (section 8.3): `INSERT OR IGNORE INTO daily (token, day)` for today, one row per token per day however many loads, and the first row of the day marks the place seen.
 7. Respond with `Content-Type: image/svg+xml` (drawn in code) or `image/png` (the pre-drawn file, section 6), and `Cache-Control: public, max-age=300` (short, so loads keep reaching the Worker).
 8. **Cost:** once a place is marked seen today (`last_seen`), later loads skip the write, so a load is one D1 read and no write.
@@ -327,7 +327,7 @@ A place is a token with a bound `host` or a `declared_url`. It counts while eith
 | `dormant` | Seen before, but nothing in the last 30 days | "not seen lately" |
 | `declared` | Has a declared address, never seen by either signal yet | "not verified yet" |
 | `new` | Not bound and not declared | not counted |
-| `flagged` | Its snippet was loaded on a second host | not counted |
+| `flagged` | Set by the old copy rule before 1 Nov 2026; no longer set | not counted |
 
 - Any sighting makes the place `active`, sets `last_seen` to today and `first_verified` if empty. A flagged place is cleared only when the Worker check finds it on its own page.
 - A failed check (404, 429, 5xx, network error) only means "not seen this time". It never deletes and never changes a status.
@@ -379,6 +379,20 @@ Decided by the owner, 1 Nov 2026.
 
 ---
 
+### 8.6 Places with no badge ID (owner, 1 Nov 2026)
+
+A badge loaded without a token still counts. Fake Referers inflating counts are accepted for this experiment. Every number is public.
+
+- **What counts.** A GET of `/badge.svg` with a label (`l`) and a Referer host that `bindableHost` accepts. Also a copied token loaded on a second host (section 8.2 step 5), marked `copied`. Not counted: HEAD, `?download`, no usable Referer (PDFs, apps, email, strict referrer policies), madeopenly.com itself, localhost, IP addresses and preview hosts. These still draw the badge.
+- **Key: host and label.** A site showing two labels is two places. The host only is stored, never the path or query, in `tokenless_places` with one `tokenless_daily` row per day seen. Nothing about the visitor.
+- **Same rules as token places.** Once a day, active while seen, dormant ("not seen lately") after 30 days, kept and never deleted automatically. Rate limit as live badges. Loads from another site get the short cache (`max-age=300`); the picker on madeopenly.com keeps the long one.
+- **Three rules, so nobody's badge becomes insecure:**
+  1. Counting is easy: a load, a click or our check counts. A faked Referer can add a count, never take one away.
+  2. Taking anything needs proof, and the only proof is our own check finding the token on that site's page. A Referer or an address typed at Generate is never proof.
+  3. Nobody can take your place away. Nothing anyone else does removes, merges, flags or lowers another place. A tokenless place is never joined into a token place, and no history moves between records.
+- **Counting once.** When a token place on the same host (bound, or the host of its declared address) with the same label has been found by our check (`last_verified` set), the counter counts that site and label once, by the token place. Both records stay. Without that proof both count, and `/stats.json` says how many may be counted twice.
+- **Never on the named list.** Listing is opted into at Generate.
+
 ## 9. Rate limits and abuse
 
 Limits are keyed by IP using Cloudflare's rate limiting. The IP is held in memory by the limiter only and **never written to D1 or logs**. There are no sessions, because there are no cookies.
@@ -408,7 +422,7 @@ Every place that was **added** (it has a bound host or a declared address) is sh
 - **Not seen lately:** status `dormant`.
 - **Not verified yet:** status `declared`.
 
-**Added** = active + not seen lately + not verified yet. Tokens generated but never placed are not added.
+**Added** = active + not seen lately + not verified yet. Tokens generated but never placed are not added. Places with no badge ID (section 8.6) are inside every number, as sites, except those a confirmed token place already counts, and are also counted on their own in `no_badge_id`. The page says "Of these, N came without a badge ID" and, when there are any, how many may count twice.
 
 **Counts are per place, not per token.** Several badges at the same place count once: the key is the declared address without `https://` and a trailing slash, or else the bound host, lowercased and without `www.`. The place takes the status and label of its most-seen badge (active, then dormant, then declared; then the latest sighting). A different page on the same site (`site.example/about`) is a different place. This applies to every number, `/stats.json`, `/places`, the named list and the weekly snapshot. Duplicates stay in the database and are not deleted. (Owner, 1 Nov 2026.) Each place is seen once a day at most (`daily` table). Visits are never counted or shown.
 
@@ -424,6 +438,7 @@ Every place that was **added** (it has a bound host or a declared address) is sh
   "added_total": 0,
   "dormant_total": 0,
   "unverified_total": 0,
+  "no_badge_id": { "total": 0, "active": 0, "dormant": 0, "from_copied_snippet": 0, "counted_once_with_badge_id": 0, "maybe_counted_twice": 0 },
   "by_status_label": {
     "active":     { "mostly-ai": 0, "human-ai": 0, "human-only": 0 },
     "dormant":    { "mostly-ai": 0, "human-ai": 0, "human-only": 0 },
@@ -436,7 +451,7 @@ Every place that was **added** (it has a bound host or a declared address) is sh
 }
 ```
 
-`total_verified`, `by_label`, `by_kind`, `by_label_kind` and `new_last_7_days` count active places; the weekly scheduled task reads these keys, so they keep their names. `listed` holds active named places only, newest first, at most 200; `listed_total` is their full count. The `/places` page shows them all.
+`no_badge_id` counts every place with no badge ID: `total` = `active` + `dormant`; `from_copied_snippet` came from a copied token; `counted_once_with_badge_id` share a site and label with a token place our check found, so the totals leave them out; `maybe_counted_twice` share a site and label with a token place not yet found by our check, so both are in the totals. `total_verified`, `by_label`, `by_kind`, `by_label_kind` and `new_last_7_days` count active places; the weekly scheduled task reads these keys, so they keep their names. `listed` holds active named places only, newest first, at most 200; `listed_total` is their full count. The `/places` page shows them all.
 
 `weekly` comes from `weekly_counts` (one snapshot per weekly run), not from the current `badges` rows.
 
@@ -509,9 +524,10 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 - Can I trust the counter? (Once-a-day rule; a place counts only while its badge loads there, is clicked from there, or is found on the page.)
 - When does my place start counting? (Added at Generate if a page address is given, otherwise at the first load from the site; the first load binds and makes it active; Substack, Medium, Notion and GitHub wait in "not verified yet" until the check or a click confirms it; 30 days unseen is "not seen lately", kept and counted again when seen.)
 - Why does the badge image load from madeopenly.com? Can I host it myself? (Each load from the site is the sign, one mark per badge per day, nothing about the visitor; a load with no Referer cannot bind, so give the page address; a self-hosted image is never seen loading, but the check finds the link if the address is given, and a click counts.)
+- What if my badge has no token, or someone copies mine? (A badge with no token counts on a website by site and label, shown as its own number; adding a token later keeps both records, nobody can take over a place, and the site and label count once after our check finds the token; a copied snippet counts for the copier's site as a place with no token and never changes the original, section 8.6.)
 - Why does the badge link back to madeopenly.com? (So a reader can learn what the label means; a click is often the only sign on platforms that copy images; the link carries the badge ID for the check; nothing about the reader is recorded; without the link it still counts on a website and in a GitHub README, maybe never on Substack, Medium or Notion.)
 - Does it work on Substack, GitHub, Medium or Notion? (Yes: paste the page address when you generate the badge. GitHub takes the code; on Substack, Medium and Notion add the badge PNG as an image linked to the badge link.)
-- What about apps, PDFs or videos? (Use the plain badge. It is not counted.)
+- What about apps, PDFs or videos? (Use the plain badge. Never counted in PDFs, videos, email or apps; on a website it counts by site and label, section 8.6.)
 - Is it free? Where is the code? (Free. Link to the GitHub repo.)
 - Can I design a mascot? (Yes. Link to CONTRIBUTING.md.)
 - Why build this? (Two lines: the mirror of "made by humans" badges.)

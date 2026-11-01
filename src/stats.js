@@ -1,6 +1,7 @@
 // GET /stats.json (SPEC.md 10). Public, counts places only, cached about an hour.
 // The original keys (total_verified, by_label, ...) count active places.
 import { LABEL_SLUGS } from "./badge.js";
+import { CONFIRMED_TOKEN, UNCONFIRMED_TOKEN } from "./tokenless.js";
 import { isoWeek } from "./verify.js";
 
 export const KINDS = ["site", "repo", "post", "product"];
@@ -63,6 +64,35 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
     total += n;
   }
 
+  // Places with no badge ID (SPEC.md 8.6): sites, inside every total, and
+  // also counted on their own. One that a confirmed token place covers (same
+  // site and label) is counted once, by the token place.
+  const { results: tokenless } = await db
+    .prepare(
+      `SELECT label, status, copied, ${CONFIRMED_TOKEN} AS confirmed, ${UNCONFIRMED_TOKEN} AS unconfirmed, COUNT(*) AS n
+       FROM tokenless_places t WHERE first_seen >= ? GROUP BY label, status, copied, confirmed, unconfirmed`,
+    )
+    .bind(sinceIso)
+    .all();
+  const noBadgeId = { total: 0, active: 0, dormant: 0, from_copied_snippet: 0, counted_once_with_badge_id: 0, maybe_counted_twice: 0 };
+  for (const { label, status, copied, confirmed, unconfirmed, n } of tokenless) {
+    if (!(label in byLabel) || !(status in byStatusLabel)) continue;
+    noBadgeId.total += n;
+    noBadgeId[status] += n;
+    if (copied) noBadgeId.from_copied_snippet += n;
+    if (confirmed) {
+      noBadgeId.counted_once_with_badge_id += n;
+      continue;
+    }
+    if (unconfirmed) noBadgeId.maybe_counted_twice += n;
+    byStatusLabel[status][label] += n;
+    if (status !== "active") continue;
+    byLabel[label] += n;
+    byKind.site += n;
+    byLabelKind[label].site += n;
+    total += n;
+  }
+
   const { results: weekly } = await db
     .prepare(
       `SELECT week, SUM(verified) AS verified, SUM(added) AS added, SUM(dormant) AS dormant, SUM(unverified) AS unverified
@@ -72,9 +102,14 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
     .all();
 
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS).toISOString();
-  const { n: newLast7 } = await db
+  const newSince = sinceIso > weekAgo ? sinceIso : weekAgo;
+  const { n: newTokens } = await db
     .prepare(`${placesCte("status = 'active'")} SELECT COUNT(*) AS n FROM places WHERE first_verified >= ?`)
-    .bind(sinceIso > weekAgo ? sinceIso : weekAgo)
+    .bind(newSince)
+    .first();
+  const { n: newTokenless } = await db
+    .prepare(`SELECT COUNT(*) AS n FROM tokenless_places t WHERE status = 'active' AND first_seen >= ? AND NOT ${CONFIRMED_TOKEN}`)
+    .bind(newSince)
     .first();
 
   const { results: listedRows } = await db
@@ -99,9 +134,10 @@ export async function buildStats(db, { now = new Date(), since = null } = {}) {
     added_total: sum(byStatusLabel.active) + sum(byStatusLabel.dormant) + sum(byStatusLabel.unverified),
     dormant_total: sum(byStatusLabel.dormant),
     unverified_total: sum(byStatusLabel.unverified),
+    no_badge_id: noBadgeId,
     by_status_label: byStatusLabel,
     weekly: weekly.map((w) => ({ week: w.week, verified: w.verified, added: w.added, dormant: w.dormant, unverified: w.unverified })),
-    new_last_7_days: newLast7,
+    new_last_7_days: newTokens + newTokenless,
     listed_total: listedTotal,
     listed: listedRows.map((r) => ({ place: placeName(r), url: placeUrl(r), label: r.label, kind: r.place_kind, since: r.first_verified.slice(0, 10) })),
   };
