@@ -60,12 +60,16 @@ textarea{min-height:140px;resize:vertical}
 .check{display:flex;gap:10px;align-items:center;margin:0 0 20px}
 .check input{width:18px;height:18px;accent-color:var(--machine)}
 .ts{margin:0 0 16px;min-height:65px}
-.keybox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.keybox p{margin:0 0 10px}
+.ready{font-weight:700;font-size:20px;margin:0 0 4px;color:var(--machine-deep)}
+.ready span{color:var(--machine)}
+.result-more{margin-top:28px}
+.result-more details p{margin:10px 0}
+.result-more .block{margin:16px 0 0}
+.summary-hint{display:block;font-weight:400;font-size:15px;color:var(--machine)}
 .key-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
 .key-qr{display:inline-block;margin:10px 0 4px}
 .key-qr svg{display:block;width:180px;height:180px}
-#key-email{display:flex;gap:8px;margin:10px 0 0}
+#key-email:not([hidden]){display:flex;gap:8px;margin:10px 0 0}
 #key-email input{flex:1;min-width:0}
 .stat-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;font-size:17px;margin:0 0 6px}
 .stat-row button{font:inherit;background:none;border:0;padding:0;color:var(--ink);cursor:help;border-bottom:1px dotted var(--ink-soft)}
@@ -260,40 +264,44 @@ footer p{margin:0 0 10px}
     </form>
 
     <div class="result" id="result" aria-live="polite">
-      <div class="block">
-        <p>Paste this where the badge should appear.</p>
-        <pre id="snippet"></pre>
-        <button class="btn quiet" type="button" data-copy="snippet">Copy</button>
-        <p class="small soft" id="asked-note" style="margin:10px 0 0" hidden>You asked to be named. Once the badge is found and approved, your place appears on the list.</p>
-      </div>
-      <div class="block keybox" id="keybox" hidden>
-        <p><b>Keep a key to manage it later?</b> Optional. Pick any, or skip.</p>
-        <div class="key-actions">
-          <button class="btn quiet" type="button" data-key="link">Copy link</button>
-          <button class="btn quiet" type="button" data-key="picture">Save picture</button>
-          <button class="btn quiet" type="button" data-key="app">Add to authenticator</button>
-          <button class="btn quiet" type="button" data-key="email">Email it to me</button>
-        </div>
-        <div id="key-app" hidden>
-          <a id="key-qr-link" class="key-qr"></a>
-          <p class="small soft">Scan it with Google Authenticator, 1Password or a similar app.</p>
-        </div>
-        <form id="key-email" hidden novalidate>
-          <input type="email" id="key-email-to" placeholder="you@example.com" autocomplete="email" aria-label="Email address">
-          <button class="btn quiet" type="submit">Send</button>
-        </form>
-        <p class="ok" id="key-msg" role="status"></p>
-        <p class="small soft">This key proves the badge is yours. With it you can take your place off Made Openly, or change it as we add features. Keep it private. We can't show it again.</p>
-      </div>
-      <div class="block">
-        <p>Your site switches between light and dark? Use this version instead.</p>
-        <pre id="theme-snippet"></pre>
-        <button class="btn quiet" type="button" data-copy="theme-snippet">Copy</button>
-      </div>
-      <div class="block" id="ai-block">
-        <p>Using an AI coding assistant? Paste this prompt into it, in your project, and it adds the badge for you.</p>
-        <pre id="ai-prompt"></pre>
-        <button class="btn quiet" type="button" data-copy="ai-prompt">Copy</button>
+      <p class="ready"><span aria-hidden="true">✓</span> Your badge is ready</p>
+      <p class="small soft">Paste this where the badge should appear.</p>
+      <pre id="snippet"></pre>
+      <button class="btn" type="button" data-copy="snippet">Copy badge</button>
+      <p class="small soft" id="asked-note" style="margin:10px 0 0" hidden>You asked to be named. Once the badge is found and approved, your place appears on the list.</p>
+      <div class="result-more">
+        <details class="keybox" id="keybox" hidden>
+          <summary><span>Want to remove or change it later? <span class="summary-hint">Save a key</span></span></summary>
+          <p>You'll need it to remove or change this badge. We only show it now.</p>
+          <div class="key-actions">
+            <button class="btn quiet" type="button" data-key="link">Copy link</button>
+            <button class="btn quiet" type="button" data-key="picture">Save picture</button>
+            <button class="btn quiet" type="button" data-key="app">Authenticator app</button>
+            <button class="btn quiet" type="button" data-key="email">Email it to me</button>
+          </div>
+          <div id="key-app" hidden>
+            <a id="key-qr-link" class="key-qr"></a>
+            <p class="small">Scan it with Google Authenticator, 1Password or a similar app.</p>
+          </div>
+          <form id="key-email" hidden novalidate>
+            <input type="email" id="key-email-to" placeholder="you@example.com" autocomplete="email" aria-label="Email address">
+            <button class="btn quiet" type="submit">Send</button>
+          </form>
+          <p class="ok" id="key-msg" role="status"></p>
+        </details>
+        <details id="more-ways">
+          <summary>More ways to add it</summary>
+          <div class="block">
+            <p>Your site switches between light and dark? Use this version instead.</p>
+            <pre id="theme-snippet"></pre>
+            <button class="btn quiet" type="button" data-copy="theme-snippet">Copy</button>
+          </div>
+          <div class="block" id="ai-block">
+            <p>Using an AI coding assistant? Paste this prompt into it, in your project, and it adds the badge for you.</p>
+            <pre id="ai-prompt"></pre>
+            <button class="btn quiet" type="button" data-copy="ai-prompt">Copy</button>
+          </div>
+        </details>
       </div>
     </div>
     <p class="small soft" style="margin-top:22px">For a PDF, video or app store page, <a id="download" href="/badge.svg?download=1" download="made-openly.svg">download the plain badge</a>. It has no tracking and is never counted.</p>
@@ -526,6 +534,8 @@ let badgeKey = null;
 function showKeyBox(data, declared) {
   badgeKey = data.key ? { key: data.key, token: data.token, place: declared ? declared.replace(/^https:\/\//, "").replace(/\/$/, "") : `badge ${data.token.slice(0, 6)}` } : null;
   $("keybox").hidden = !badgeKey;
+  $("keybox").open = false;
+  $("more-ways").open = false;
   $("key-app").hidden = true;
   $("key-email").hidden = true;
   $("key-msg").textContent = "";
@@ -610,13 +620,14 @@ $("key-email").addEventListener("submit", async (e) => {
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-copy]");
   if (!btn) return;
+  btn.dataset.label ??= btn.textContent;
   try {
     await navigator.clipboard.writeText($(btn.dataset.copy).textContent);
     btn.textContent = "Copied";
   } catch {
     btn.textContent = "Select and copy by hand";
   }
-  setTimeout(() => (btn.textContent = "Copy"), 2000);
+  setTimeout(() => (btn.textContent = btn.dataset.label ?? "Copy"), 2000);
 });
 
 // Counter from /stats.json.

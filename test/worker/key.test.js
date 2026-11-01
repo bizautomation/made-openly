@@ -145,11 +145,17 @@ describe("pages", () => {
     const html = await (await call("/")).text();
     expect(html).toMatch(/<input type="checkbox" name="list" id="list-me">\s*Name this place on the public list/);
     expect(html).toContain("Your place appears on the list after the badge is found there and we approve it.");
-    const box = html.slice(html.indexOf('id="keybox"'), html.indexOf("</div>\n      <div class=\"block\">", html.indexOf('id="keybox"')));
+    // One main button; the key and the extra snippets wait behind two closed rows.
+    const result = html.slice(html.indexOf('id="result"'), html.indexOf('id="download"'));
+    expect(result.match(/class="btn"/g)).toHaveLength(1);
+    expect(result).toContain(">Copy badge</button>");
+    const box = html.slice(html.indexOf('id="keybox"'), html.indexOf('id="more-ways"'));
+    expect(box).toMatch(/^id="keybox" hidden>/);
     expect(box.match(/data-key="/g)).toHaveLength(4);
-    for (const w of ["Copy link", "Save picture", "Add to authenticator", "Email it to me"]) expect(box).toContain(w);
-    expect(box).toContain("Keep a key to manage it later?");
-    expect(box).toContain("We can't show it again.");
+    for (const w of ["Copy link", "Save picture", "Authenticator app", "Email it to me"]) expect(box).toContain(w);
+    expect(box).toContain("Want to remove or change it later?");
+    expect(box).toContain("You'll need it to remove or change this badge. We only show it now.");
+    expect(html).toMatch(/<details id="more-ways">\s*<summary>More ways to add it<\/summary>/);
     // Words never shown on the page (scripts may use otpauth:// and location.hash).
     const visible = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ");
     expect(visible).not.toMatch(/TOTP|2FA|hash|encrypt/i);
