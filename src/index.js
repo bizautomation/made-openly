@@ -5,7 +5,7 @@ import { handleManage, handleManageList, handleRemove, handleSendKey, managePage
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
-import { HOME, headTags, robots, shareImage, sitemap } from "./share.js";
+import { HOME, headTags, shareImage, sitemap } from "./share.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
 import { handleContact } from "./contact.js";
 import { handleList, handleReport, handleReview, purgeStats, sendReviewEmail } from "./moderation.js";
@@ -153,7 +153,6 @@ function route(request, env, ctx, url) {
   if (method === "GET" && pathname === "/badge.svg") return previewBadge(url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
   if (method === "GET" && pathname === "/sitemap.xml") return sitemap();
-  if (method === "GET" && pathname === "/robots.txt") return robots();
   if (method === "POST" && pathname === "/api/contact") return handleContact(request, env, ctx);
   if (method === "POST" && pathname === "/api/list") return handleList(request, env);
   if (method === "POST" && pathname === "/api/report") return handleReport(request, env, ctx);

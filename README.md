@@ -82,7 +82,7 @@ One Cloudflare Worker with a D1 database. There is no framework and no build ste
 | `src/verify.js`, `src/sighting.js` | The Worker check, and active/dormant status |
 | `src/stats.js`, `src/places.js` | `/stats.json` and the `/places` page |
 | `src/key.js`, `src/manage.js` | The badge key and `/manage` |
-| `src/share.js`, `scripts/render-og.js` | Link preview tags, `/og.png`, `/sitemap.xml`, `/robots.txt` |
+| `src/share.js`, `scripts/render-og.js` | Link preview tags, `/og.png`, `/sitemap.xml` |
 | `src/moderation.js` | The named list, reports and the owner's weekly email |
 | `src/page.html` | The page |
 | `migrations/` | D1 schema |

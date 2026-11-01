@@ -89,9 +89,7 @@ describe("GET /sitemap.xml", () => {
 });
 
 describe("GET /robots.txt", () => {
-  it("names the sitemap on madeopenly.com", async () => {
-    const res = await call("/robots.txt");
-    expect(res.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
-    expect(await res.text()).toBe("Sitemap: https://madeopenly.com/sitemap.xml\n");
+  it("is left to Cloudflare's managed file on madeopenly.com", async () => {
+    expect((await call("/robots.txt")).status).toBe(404);
   });
 });
