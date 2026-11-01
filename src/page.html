@@ -65,6 +65,10 @@ textarea{min-height:140px;resize:vertical}
 .result-more{margin-top:28px}
 .result-more details p{margin:10px 0}
 .result-more .block{margin:16px 0 0}
+.steps{margin:6px 0 10px;padding-left:22px}
+.steps li{margin:0 0 10px;color:var(--ink-soft)}
+.steps code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:13px;color:var(--ink);overflow-wrap:anywhere}
+.steps .btn.quiet{padding:4px 10px;font-size:14px;margin-left:4px}
 .summary-hint{display:block;font-weight:400;font-size:15px;color:var(--machine)}
 .key-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
 .key-qr{display:inline-block;margin:10px 0 4px}
@@ -271,6 +275,17 @@ footer p{margin:0 0 10px}
       <button class="btn" type="button" data-copy="snippet">Copy badge</button>
       <p class="small soft" id="asked-note" style="margin:10px 0 0" hidden>You asked to be named. Once the badge is found and approved, your place appears on the list.</p>
       <div class="result-more">
+        <details id="platform">
+          <summary>On Substack, Medium or Notion?</summary>
+          <p>Their editors don't take the code above. Add the badge as an image instead:</p>
+          <ol class="steps">
+            <li><a class="btn quiet" id="platform-png" href="/png/human-ai-light-large-robot.png" download="made-openly.png">Download the badge PNG</a></li>
+            <li>Add it as an image in your post or page.</li>
+            <li>Link the image to <code id="platform-link"></code> <button class="btn quiet" type="button" data-copy="platform-link">Copy</button></li>
+            <li>Set its alt text to <code id="platform-alt"></code> <button class="btn quiet" type="button" data-copy="platform-alt">Copy</button></li>
+          </ol>
+          <p class="small">It counts when a reader clicks it, or when we find the link on your page.</p>
+        </details>
         <details class="keybox" id="keybox" hidden>
           <summary><span>Want to remove or change it later? <span class="summary-hint">Save a key</span></span></summary>
           <p>You'll need it to remove or change this badge. We only show it now.</p>
@@ -363,7 +378,7 @@ footer p{margin:0 0 10px}
     <details><summary>Can I trust the counter?</summary>
       <p>Each place counts once a day at most, and only while we can see its badge: its image loading there, a click on it from there, or our check finding it on the page. Visits are never counted.</p></details>
     <details><summary>Does it work on Substack, GitHub, Medium or Notion?</summary>
-      <p>Yes. Paste the page address when you make the badge, and we look for it there within 15 minutes.</p></details>
+      <p>Yes. Paste the page address when you make the badge. GitHub takes the code as it is. Substack, Medium and Notion don't take code: download the badge PNG, add it as an image, and link it to your badge link (madeopenly.com/?t=…). It counts when a reader clicks it, or when we find the link on your page.</p></details>
     <details><summary>What about apps, PDFs or videos?</summary>
       <p>Use the plain badge. It works anywhere but is not counted.</p></details>
     <details><summary>Is it free? Where is the code?</summary>
@@ -531,6 +546,12 @@ picker.addEventListener("submit", async (e) => {
   $("theme-snippet").textContent = theme;
   $("png-snippet").textContent = data.snippet.replace(`/b/${data.token}.svg`, `/b/${data.token}.png`);
   $("ai-block").hidden = data.place_kind === "post";
+  // Substack, Medium and Notion take an uploaded image with a link, not HTML.
+  $("platform-png").href = `/png/${s.label}-${s.style}-${s.size}-${s.variant}.png`;
+  $("platform-png").download = `made-openly-${s.label}.png`;
+  $("platform-link").textContent = `${ORIGIN}/?t=${data.token}`;
+  $("platform-alt").textContent = `Made Openly: ${TEXT[s.label]}`;
+  $("platform").open = data.place_kind === "post";
   $("ai-prompt").textContent = aiPrompt(data, theme);
   $("asked-note").hidden = data.listed !== "asked";
   showKeyBox(data, declared);
