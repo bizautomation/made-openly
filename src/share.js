@@ -10,8 +10,22 @@ export const HOME = {
   url: `${ORIGIN}/`,
   title: "Made Openly: say how much AI helped make your work",
   description: DESCRIPTION,
-  // WebSite structured data, on the home page only.
-  jsonLd: { "@context": "https://schema.org", "@type": "WebSite", name: "Made Openly", url: `${ORIGIN}/`, description: DESCRIPTION },
+  // WebSite and Organization structured data, on the home page only.
+  jsonLd: {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "WebSite", "@id": `${ORIGIN}/#website`, name: "Made Openly", url: `${ORIGIN}/`, description: DESCRIPTION, publisher: { "@id": `${ORIGIN}/#organization` } },
+      {
+        "@type": "Organization",
+        "@id": `${ORIGIN}/#organization`,
+        name: "Made Openly",
+        url: `${ORIGIN}/`,
+        logo: `${ORIGIN}/icon-512.png`,
+        sameAs: ["https://github.com/bizautomation/made-openly"],
+        parentOrganization: { "@type": "Organization", name: "Biz-Automation Co., Ltd.", address: { "@type": "PostalAddress", addressLocality: "Bangkok", addressCountry: "TH" } },
+      },
+    ],
+  },
 };
 export const PLACES = {
   url: `${ORIGIN}/places`,

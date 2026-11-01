@@ -1,3 +1,4 @@
+import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { call } from "./helpers.js";
 
@@ -14,7 +15,7 @@ const canonical = (h) => /<link rel="canonical" href="([^"]*)">/.exec(h)?.[1];
 const unesc = (s) => s?.replaceAll("&amp;", "&").replaceAll("&quot;", '"');
 
 describe("share tags (SPEC.md 11.4)", () => {
-  it("are all on /, with the WebSite JSON-LD", async () => {
+  it("are all on /, with the WebSite and Organization JSON-LD", async () => {
     const h = await head("/");
     expect(canonical(h)).toBe("https://madeopenly.com/");
     expect(unesc(meta(h, "name", "description"))).toBe(DESCRIPTION);
@@ -34,7 +35,14 @@ describe("share tags (SPEC.md 11.4)", () => {
     expect(unesc(meta(h, "name", "twitter:image:alt"))).toBe(ALT);
     expect(h.match(/<meta name="description"/g)).toHaveLength(1);
     const ld = JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/.exec(h)[1]);
-    expect(ld).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "Made Openly", url: "https://madeopenly.com/", description: DESCRIPTION });
+    expect(ld["@context"]).toBe("https://schema.org");
+    const [site, org] = ld["@graph"];
+    expect(site).toEqual({
+      "@type": "WebSite", "@id": "https://madeopenly.com/#website", name: "Made Openly", url: "https://madeopenly.com/",
+      description: DESCRIPTION, publisher: { "@id": "https://madeopenly.com/#organization" },
+    });
+    expect(org).toMatchObject({ "@type": "Organization", "@id": "https://madeopenly.com/#organization", logo: "https://madeopenly.com/icon-512.png" });
+    expect(org.parentOrganization.name).toBe("Biz-Automation Co., Ltd.");
   });
 
   it("canonical ignores the query string, so badge-link visits point back to /", async () => {
@@ -91,5 +99,50 @@ describe("GET /sitemap.xml", () => {
 describe("GET /robots.txt", () => {
   it("is left to Cloudflare's managed file on madeopenly.com", async () => {
     expect((await call("/robots.txt")).status).toBe(404);
+  });
+});
+
+describe("site icons", () => {
+  it("are square and linked from every page", async () => {
+    for (const path of ["/", "/places", "/manage"]) {
+      const h = await head(path);
+      expect(h).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32 48x48">');
+      expect(h).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">');
+      expect(h).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
+    }
+    const svg = await (await env.ASSETS.fetch("https://madeopenly.com/favicon.svg")).text();
+    expect(svg).toContain('viewBox="0 0 100 100"');
+    for (const [path, size] of [["/apple-touch-icon.png", 180], ["/icon-512.png", 512]]) {
+      const b = new DataView(await (await env.ASSETS.fetch(`https://madeopenly.com${path}`)).arrayBuffer());
+      expect([b.getUint32(16), b.getUint32(20)]).toEqual([size, size]);
+    }
+    const ico = new DataView(await (await env.ASSETS.fetch("https://madeopenly.com/favicon.ico")).arrayBuffer());
+    expect([ico.getUint16(2, true), ico.getUint16(4, true)]).toEqual([1, 2]); // an icon file with two images
+  });
+});
+
+describe("missing and slashed addresses", () => {
+  it("redirects a trailing slash on a page, keeping the query", async () => {
+    const res = await call("/places/?l=mostly-ai", { redirect: "manual" });
+    expect(res.status).toBe(301);
+    expect(res.headers.get("Location")).toBe("https://madeopenly.com/places?l=mostly-ai");
+    expect((await call("/manage/", { redirect: "manual" })).headers.get("Location")).toBe("https://madeopenly.com/manage");
+  });
+
+  it("gives browsers a small noindex page with a way home", async () => {
+    const res = await call("/nope", { headers: { Accept: "text/html,application/xhtml+xml" } });
+    expect(res.status).toBe(404);
+    expect(res.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+    const html = await res.text();
+    expect(html).toContain("<title>Page not found</title>");
+    expect(html).toContain('<meta name="robots" content="noindex">');
+    expect(html).toContain('<a href="/">Go to the home page</a>');
+    expect(html).not.toMatch(/og:|rel="canonical"|__HEAD_TAGS__/);
+  });
+
+  it("keeps the plain-text answer for anything else", async () => {
+    const res = await call("/nope");
+    expect(res.status).toBe(404);
+    expect(await res.text()).toBe("Not found");
   });
 });
