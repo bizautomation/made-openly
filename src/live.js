@@ -58,7 +58,7 @@ export async function handleLiveBadge(request, env, token, url, format = "svg") 
   const limited = !(await withinLimit(env.RL_BADGE, request));
 
   const db = env.DB;
-  const row = await db.prepare("SELECT label, style, size, variant, host, last_seen FROM badges WHERE token = ?").bind(token).first();
+  const row = await db.prepare("SELECT label, style, size, variant, host, declared_url, last_seen FROM badges WHERE token = ?").bind(token).first();
   if (!row) {
     const hint = parseSettings({ size: url.searchParams.get("z") ?? undefined, style: url.searchParams.get("s") ?? undefined }) ?? {};
     const size = hint.size ?? "large", style = hint.style ?? "light";
@@ -75,7 +75,14 @@ export async function handleLiveBadge(request, env, token, url, format = "svg") 
   const host = bindableHost(request.headers.get("Referer"));
   // Without a usable Referer the load cannot say where it is: draw, record nothing.
   let record = host !== null;
-  if (host && !row.host) {
+  // A token belongs to its bound host, or else to its declared address's
+  // host. A load from any other site is a copy: it counts for that site as a
+  // place with no token, and never binds or touches this place (SPEC.md 8.6).
+  const ownHost = row.host ?? bindableHost(row.declared_url);
+  if (host && ownHost && host !== ownHost) {
+    record = false;
+    await recordTokenless(db, host, row.label, { copied: true });
+  } else if (host && !row.host) {
     // Bind only if still unbound, so two first loads cannot both bind.
     const now = new Date().toISOString();
     const res = await db
@@ -90,11 +97,6 @@ export async function handleLiveBadge(request, env, token, url, format = "svg") 
       record = now?.host === host;
       if (!record) await recordTokenless(db, host, row.label, { copied: true });
     }
-  } else if (host && row.host !== host) {
-    // Someone copied another place's snippet. It counts for their site as a
-    // place with no token, and the original place is never touched (SPEC.md 8.6).
-    record = false;
-    await recordTokenless(db, host, row.label, { copied: true });
   }
 
   // A load from the place's own host is a sighting (SPEC.md 8.3). Once the

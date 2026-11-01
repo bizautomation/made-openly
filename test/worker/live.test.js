@@ -92,6 +92,18 @@ describe("GET /b/:token.svg", () => {
     expect(copy.results).toEqual([{ host: "copycat.example", label: "mostly-ai", copied: 1 }]);
   });
 
+  it("never binds a token with a page address to another site", async () => {
+    const token = await seed({ declared_url: "https://www.blog.example/p/one", status: "declared", verify_method: "address" });
+    await load(token, "https://faker.example/");
+    expect(await row(token)).toMatchObject({ host: null, status: "declared" });
+    expect(await days(token)).toBe(0);
+    const copy = await env.DB.prepare("SELECT host, copied FROM tokenless_places WHERE host = 'faker.example'").all();
+    expect(copy.results).toEqual([{ host: "faker.example", copied: 1 }]);
+    await load(token, "https://blog.example/p/one");
+    expect(await row(token)).toMatchObject({ host: "blog.example", status: "active" });
+    expect(await days(token)).toBe(1);
+  });
+
   it("keeps counting loads from the first host of a place flagged before (old rule)", async () => {
     const token = await seed({ host: "first.example", status: "flagged", verify_method: "live" });
     await load(token, "https://first.example/about");
