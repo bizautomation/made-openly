@@ -147,7 +147,7 @@ describe("pages", () => {
     expect(html).toContain("Your place appears on the list after the badge is found there and we approve it.");
     // One main button; the key and the extra snippets wait behind two closed rows.
     const result = html.slice(html.indexOf('id="result"'), html.indexOf('id="download"'));
-    expect(result.match(/class="btn"/g)).toHaveLength(1);
+    expect(result.match(/class="btn"/g)).toHaveLength(1); // one main button; the rest are quiet
     expect(result).toContain(">Copy badge</button>");
     const box = html.slice(html.indexOf('id="keybox"'), html.indexOf('id="more-ways"'));
     expect(box).toMatch(/^id="keybox" hidden>/);
@@ -156,6 +156,10 @@ describe("pages", () => {
     expect(box).toContain("Want to remove or change it later?");
     expect(box).toContain("You'll need it to remove or change this badge. We only show it now.");
     expect(html).toMatch(/<details id="more-ways">\s*<summary>More ways to add it<\/summary>/);
+    // Substack, Medium and Notion: upload the PNG and link it.
+    const platform = html.slice(html.indexOf('<details id="platform">'), html.indexOf('id="keybox"'));
+    expect(platform).toContain("On Substack, Medium or Notion?");
+    for (const id of ["platform-png", "platform-link", "platform-alt"]) expect(platform).toContain(`id="${id}"`);
     // Words never shown on the page (scripts may use otpauth:// and location.hash).
     const visible = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ");
     expect(visible).not.toMatch(/TOTP|2FA|hash|encrypt/i);
