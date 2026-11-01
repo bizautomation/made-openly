@@ -278,7 +278,7 @@ No IP address, user agent, visitor identifier or email address is stored anywher
 | GET | `/manage` | Manage a badge with its key (section 8.5). |
 | POST | `/api/manage`, `/api/manage/remove`, `/api/manage/list` | Open, remove or list a badge with its key or code. |
 | POST | `/api/send-key` | Email a badge key once. |
-| GET | `/og.png`, `/sitemap.xml`, `/robots.txt` | Share image, sitemap and its robots line (section 11.4). |
+| GET | `/og.png`, `/sitemap.xml` | Share image and sitemap (section 11.4). |
 
 ### 8.1 `POST /api/generate`
 
@@ -492,7 +492,7 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 - **Canonical:** `https://madeopenly.com/` and `https://madeopenly.com/places`, never with a query string, so `/?t=TOKEN` points back to `/`.
 - **JSON-LD:** a `WebSite` object on `/` only.
 - **`/sitemap.xml`:** `/` and `/places` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
-- **`/robots.txt`:** the Worker serves one line, `Sitemap: https://madeopenly.com/sitemap.xml`. Cloudflare's managed robots.txt (content signals) is set on the zone and is not changed here.
+- **`/robots.txt`:** Cloudflare's managed file (content signals), set on the zone. The Worker serves none, because a Worker robots.txt replaces the managed one (seen live 1 Nov 2026). The sitemap is submitted in Search Console instead.
 - `/manage` has no share tags and keeps `noindex`.
 
 ### Style
