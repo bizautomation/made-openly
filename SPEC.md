@@ -447,17 +447,13 @@ One page, mobile-first, one column on phones. A small jump menu at the top. Sect
 1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
 2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
 3. **Why.** Three or four lines from section 1 ("The idea").
-4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, unticked by default: "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button returns the snippet with a **Copy** button (and, when the list box was ticked, one line: "You asked to be named. Once the badge is found and approved, your place appears on the list."), the key box (below), the theme-swap snippet and the AI assistant prompt. A link to download the plain no-tracking badge.
+4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, unticked by default: "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button shows the result, calm and short:
 
-   **The key box.** Below the snippet and its Copy button, in a light box, and nothing else until a button is pressed:
+   - "✓ Your badge is ready", the snippet and one main button, **Copy badge**. When the list box was ticked, one line: "You asked to be named. Once the badge is found and approved, your place appears on the list."
+   - A closed row, **"Want to remove or change it later?"** with "Save a key" under it. Opened, it shows one line, "You'll need it to remove or change this badge. We only show it now.", and four buttons: Copy link, Save picture, Authenticator app, Email it to me (section 8.5).
+   - A closed row, **"More ways to add it"**, holding the light/dark theme-swap snippet and the AI assistant prompt.
 
-   > **Keep a key to manage it later?** Optional. Pick any, or skip.
-   >
-   > [Copy link]  [Save picture]  [Add to authenticator]  [Email it to me]
-   >
-   > This key proves the badge is yours. With it you can take your place off Made Openly, or change it as we add features. Keep it private. We can't show it again.
-
-   Nothing must stand between a visitor and their snippet. The page never uses the words TOTP, 2FA, hash or encrypt.
+   Then a link to download the plain no-tracking badge. Nothing stands between a visitor and their snippet: the key and the extras wait behind the two closed rows. The page never uses the words TOTP, 2FA, hash or encrypt. (Owner, 1 Nov 2026.)
 5. **Counter.** Section 10.
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
