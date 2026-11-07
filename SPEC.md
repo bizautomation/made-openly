@@ -468,7 +468,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for
 
 ## 11. The page
 
-One page, mobile-first, one column on phones. A small jump menu at the top. Sections in order:
+One page, mobile-first, one column on phones. A small jump menu at the top: Labels, Get a badge, Count, Places, FAQ, Music. Contact and GitHub live in the footer (owner, 8 Nov 2026). Sections in order:
 
 1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
 2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
@@ -517,7 +517,7 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 
 Made Openly is also the artist name for songs made from the owner's essays. `/music` shows them, so people arriving from YouTube, TikTok or Suno find the songs, and each song is a worked example of the badge.
 
-- Same nav and styles as the main page, rendered on the server. Its footer is two lines: no cookies, YouTube loads only on play, Web Analytics, a link to the full privacy note at `/#privacy`, and the open source and owner line (owner, 8 Nov 2026: the full badge privacy note was too heavy here). Song data is static in `src/music.js`; a new song is a deploy.
+- Same nav and styles as the main page, rendered on the server. Its footer is one small line: no cookies, YouTube loads only on play, then Privacy, Contact, GitHub and the owner (owner, 8 Nov 2026: the full badge privacy note was too heavy here).
 - One block per song: square cover, title, one line, the song's own badge (first song: Human + AI) linking to `/#labels`, a one-line breakdown of who made what, and only the outside links that exist (YouTube, TikTok, Suno, the essay).
 - The video is a YouTube embed behind a click. Until the reader presses play the page shows a local poster and loads nothing from YouTube; then it loads the player from `youtube-nocookie.com`, the only frame `/music` allows. No video ID yet: the poster and "The full video is coming to YouTube." With a video, the poster is the YouTube thumbnail (`/art/video-poster-*.jpg`) and a chapter list links each time to YouTube. First video: `uG2TsIxvBNE` on the @MadeOpenly channel (7 Nov 2026).
 - Pictures (raven in three styles, stills) live in `public/art/` as 800 and 1600 px JPEGs. `/music` has its own share image, `/art/sing-like-a-human-og.jpg` (1200 x 630).
