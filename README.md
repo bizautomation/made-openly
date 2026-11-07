@@ -114,6 +114,6 @@ Local settings go in `.dev.vars`, which is gitignored. For the forms, use Cloudf
 
 ## Licence
 
-Code: [MIT](LICENSE). Badge artwork and mascots: [CC BY 4.0](LICENSE-ART).
+Code: [MIT](LICENSE). Badge artwork and mascots: [CC BY 4.0](LICENSE-ART). Song pictures in `public/art/`: all rights reserved.
 
 Run by Biz-Automation Co., Ltd., Bangkok, Thailand.
