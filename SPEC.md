@@ -517,12 +517,12 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 
 Made Openly is also the artist name for songs made from the owner's essays. `/music` shows them, so people arriving from YouTube, TikTok or Suno find the songs, and each song is a worked example of the badge.
 
-- Same nav, styles and privacy footer as the main page, rendered on the server. Song data is static in `src/music.js`; a new song is a deploy.
+- Same nav and styles as the main page, rendered on the server. Its footer is two lines: no cookies, YouTube loads only on play, Web Analytics, a link to the full privacy note at `/#privacy`, and the open source and owner line (owner, 8 Nov 2026: the full badge privacy note was too heavy here). Song data is static in `src/music.js`; a new song is a deploy.
 - One block per song: square cover, title, one line, the song's own badge (first song: Human + AI) linking to `/#labels`, a one-line breakdown of who made what, and only the outside links that exist (YouTube, TikTok, Suno, the essay).
 - The video is a YouTube embed behind a click. Until the reader presses play the page shows a local poster and loads nothing from YouTube; then it loads the player from `youtube-nocookie.com`, the only frame `/music` allows. No video ID yet: the poster and "The full video is coming to YouTube." With a video, the poster is the YouTube thumbnail (`/art/video-poster-*.jpg`) and a chapter list links each time to YouTube. First video: `uG2TsIxvBNE` on the @MadeOpenly channel (7 Nov 2026).
 - Pictures (raven in three styles, stills) live in `public/art/` as 800 and 1600 px JPEGs. `/music` has its own share image, `/art/sing-like-a-human-og.jpg` (1200 x 630).
 - The song pictures in `public/art/` are all rights reserved, outside the CC BY 4.0 badge artwork licence (owner, 7 Nov 2026). The page says so under each song.
-- The home page links to `/music` from the footer only, so the badge never reads as a promotion for the songs. The privacy footer says when YouTube loads.
+- The home page links to `/music` from the footer only, so the badge never reads as a promotion for the songs. The home page's privacy footer says when YouTube loads.
 
 ### Style
 
