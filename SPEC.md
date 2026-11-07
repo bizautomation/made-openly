@@ -526,7 +526,7 @@ Made Openly is also the artist name for songs made from the owner's essays. `/mu
 
 ### Style
 
-Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper background, Ink text, Machine teal for buttons and links. No dark mode for the page at launch, no glow effects.
+Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper background, Ink text, Machine teal for buttons and links. No dark mode for the page at launch, no glow effects. Layout (owner, 8 Nov 2026): the menu bar is 1120 px wide, sections 960 px for badges, cards, the counter and pictures; running text (paragraphs, Why, Get a badge, FAQ, Contact, footer, /manage) keeps a 720 px measure.
 
 ### 11.1 FAQ (seed questions; write plain, short answers)
 
