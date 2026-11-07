@@ -33,14 +33,21 @@ export const PLACES = {
   description: "Sites, repos, posts and products that wear the Made Openly badge and asked to be named. We count places, never visitors.",
 };
 
+export const MUSIC = {
+  url: `${ORIGIN}/music`,
+  title: "Music, made openly: Sing Like a Human",
+  description: "Songs made from essays about AI, each wearing the Made Openly badge and saying how it was made. First song: Sing Like a Human.",
+  image: { url: `${ORIGIN}/art/sing-like-a-human-og.jpg`, width: 1200, height: 630, alt: "A raven with spread wings over a red sea, painted in dark ember." },
+};
+
 // The pages search engines may list. Not /manage, /stats.json or any badge or API address.
-const SITEMAP_PAGES = [HOME, PLACES];
+const SITEMAP_PAGES = [HOME, PLACES, MUSIC];
 
 const attr = (s) => s.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 
 // The head tags for one page. The canonical never carries a query string,
 // so /?t=TOKEN badge-link visits point back to /.
-export function headTags({ url, title, description, jsonLd }) {
+export function headTags({ url, title, description, jsonLd, image = IMAGE }) {
   const meta = (key, name, content) => `<meta ${key}="${name}" content="${attr(String(content))}">`;
   const tags = [
     meta("name", "description", description),
@@ -50,15 +57,15 @@ export function headTags({ url, title, description, jsonLd }) {
     meta("property", "og:url", url),
     meta("property", "og:title", title),
     meta("property", "og:description", description),
-    meta("property", "og:image", IMAGE.url),
-    meta("property", "og:image:width", IMAGE.width),
-    meta("property", "og:image:height", IMAGE.height),
-    meta("property", "og:image:alt", IMAGE.alt),
+    meta("property", "og:image", image.url),
+    meta("property", "og:image:width", image.width),
+    meta("property", "og:image:height", image.height),
+    meta("property", "og:image:alt", image.alt),
     meta("name", "twitter:card", "summary_large_image"),
     meta("name", "twitter:title", title),
     meta("name", "twitter:description", description),
-    meta("name", "twitter:image", IMAGE.url),
-    meta("name", "twitter:image:alt", IMAGE.alt),
+    meta("name", "twitter:image", image.url),
+    meta("name", "twitter:image:alt", image.alt),
   ];
   if (jsonLd) tags.push(`<script type="application/ld+json">${JSON.stringify(jsonLd).replaceAll("<", "\\u003c")}</script>`);
   return tags.join("\n");

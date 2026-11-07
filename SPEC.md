@@ -509,9 +509,19 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 - **JSON-LD:** on `/` only, a `WebSite` published by an `Organization` "Made Openly" (logo `/icon-512.png`, the GitHub repo in `sameAs`, parent organization Biz-Automation Co., Ltd., Bangkok).
 - **Icons:** square, drawn from the robot mascot by `scripts/render-icons.js`: `/favicon.svg`, `/favicon.ico` (32 and 48 px), `/apple-touch-icon.png` (180 px) and `/icon-512.png`, on every page. Google shows only a square favicon in results. (Owner, 1 Nov 2026; before this the icon was the 88 x 31 badge.)
 - **Addresses:** `/places/` and `/manage/` redirect (301) to the address without the slash, keeping the query. A missing page asked for by a browser gets a small `noindex` page with a link home; anything else keeps the plain-text 404.
-- **`/sitemap.xml`:** `/` and `/places` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
+- **`/sitemap.xml`:** `/`, `/places` and `/music` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
 - **`/robots.txt`:** Cloudflare's managed file (content signals), set on the zone. The Worker serves none, because a Worker robots.txt replaces the managed one (seen live 1 Nov 2026). The sitemap is submitted in Search Console instead.
 - `/manage` has no share tags and keeps `noindex`.
+
+### 11.5 The `/music` page (owner, 7 Nov 2026)
+
+Made Openly is also the artist name for songs made from the owner's essays. `/music` shows them, so people arriving from YouTube, TikTok or Suno find the songs, and each song is a worked example of the badge.
+
+- Same nav, styles and privacy footer as the main page, rendered on the server. Song data is static in `src/music.js`; a new song is a deploy.
+- One block per song: square cover, title, one line, the song's own badge (first song: Human + AI) linking to `/#labels`, a one-line breakdown of who made what, and only the outside links that exist (YouTube, TikTok, Suno, the essay).
+- The video is a YouTube embed behind a click. Until the reader presses play the page shows a local poster and loads nothing from YouTube; then it loads the player from `youtube-nocookie.com`, the only frame `/music` allows. No video ID yet: the poster and "The full video is coming to YouTube."
+- Pictures (raven in three styles, stills) live in `public/art/` as 800 and 1600 px JPEGs. `/music` has its own share image, `/art/sing-like-a-human-og.jpg` (1200 x 630).
+- The home page links to `/music` from the footer only, so the badge never reads as a promotion for the songs. The privacy footer says when YouTube loads.
 
 ### Style
 
