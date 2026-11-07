@@ -17,7 +17,10 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.6}
 a{color:var(--machine)}
 a:hover{color:var(--machine-deep)}
-.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+nav .wrap{max-width:1120px}
+/* Wide sections for badges, cards and pictures; running text keeps a 720px measure. */
+.wrap>p,#why .wrap>*,#get .wrap>*,#faq .wrap>*,#contact .wrap>*,footer .wrap>*,.manage .wrap>*{max-width:688px}
 nav{border-bottom:1px solid var(--line);background:var(--paper)}
 nav .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-top:14px;padding-bottom:14px}
 nav .brand{font-weight:700;letter-spacing:.08em;font-size:13px;color:var(--machine);text-decoration:none;margin-right:auto}
