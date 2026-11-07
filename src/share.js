@@ -40,8 +40,14 @@ export const MUSIC = {
   image: { url: `${ORIGIN}/art/sing-like-a-human-og.jpg`, width: 1200, height: 630, alt: "A raven with spread wings over a red sea, painted in dark ember." },
 };
 
+export const PRIVACY = {
+  url: `${ORIGIN}/privacy`,
+  title: "Privacy: Made Openly",
+  description: "What Made Openly records: the place a badge appears, the label and the days it was seen. No cookies, no IP addresses, nothing about visitors.",
+};
+
 // The pages search engines may list. Not /manage, /stats.json or any badge or API address.
-const SITEMAP_PAGES = [HOME, PLACES, MUSIC];
+const SITEMAP_PAGES = [HOME, PLACES, MUSIC, PRIVACY];
 
 const attr = (s) => s.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 

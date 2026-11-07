@@ -87,13 +87,13 @@ describe("GET /og.png", () => {
 });
 
 describe("GET /sitemap.xml", () => {
-  it("lists /, /places and /music only, as XML", async () => {
+  it("lists /, /places, /music and /privacy only, as XML", async () => {
     const res = await call("/sitemap.xml");
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("application/xml; charset=utf-8");
     const xml = await res.text();
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual(["https://madeopenly.com/", "https://madeopenly.com/places", "https://madeopenly.com/music"]);
+    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual(["https://madeopenly.com/", "https://madeopenly.com/places", "https://madeopenly.com/music", "https://madeopenly.com/privacy"]);
   });
 });
 

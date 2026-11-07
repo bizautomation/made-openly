@@ -6,6 +6,7 @@ import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
 import { handleMusic } from "./music.js";
+import { handlePrivacy } from "./privacy.js";
 import { HOME, headTags, shareImage, sitemap } from "./share.js";
 import { recordTokenless } from "./tokenless.js";
 import { runNewCheck, runWeeklyCheck } from "./verify.js";
@@ -97,7 +98,7 @@ async function page(request, env, ctx, url) {
   });
 }
 
-// /places, /manage and /music share the home page's styles, nav and footer, cut from
+// /places, /manage, /music and /privacy share the home page's styles, nav and footer, cut from
 // page.html. Each page fills __HEAD_TAGS__ and its own title.
 const between = (start, end) => pageHtml.slice(pageHtml.indexOf(start), pageHtml.indexOf(end) + end.length);
 const SHELL = {
@@ -161,6 +162,7 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
   if (method === "GET" && pathname === "/music") return handleMusic(SHELL, CSP);
+  if (method === "GET" && pathname === "/privacy") return handlePrivacy(SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
   if (method === "GET" && pathname === "/sitemap.xml") return sitemap();
@@ -176,7 +178,7 @@ function route(request, env, ctx, url) {
   return notFound(request);
 }
 
-const PAGES = ["/places", "/manage", "/music"];
+const PAGES = ["/places", "/manage", "/music", "/privacy"];
 
 // A missing page gets a small page with the site's nav and a way home, for
 // browsers. Anything else (badges, API) keeps the plain-text answer.
