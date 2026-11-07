@@ -102,7 +102,7 @@ describe("GitHub repo link", () => {
     expect(nav).not.toContain(REPO);
     expect(nav).not.toContain("Contact");
     expect(nav).toContain('<a href="/music">Music</a>');
-    expect(footer).toContain('<a href="/#contact">Contact us</a>');
-    expect(footer).toContain(`Open source (MIT). ${REPO}Code on GitHub</a>`);
+    expect(footer).toContain('<a href="/#contact">Contact</a>');
+    expect(footer).toContain(`${REPO}GitHub</a>`);
   });
 });

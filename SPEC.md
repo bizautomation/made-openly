@@ -484,7 +484,7 @@ One page, mobile-first, one column on phones. A small jump menu at the top: Labe
 5. **Counter.** Section 10.
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
-8. **Privacy** (small footer, about 14 px, not tiny). Section 11.2.
+8. **Footer.** One small line, the same on every page: "No cookies. We count places, never visitors." then Privacy, Contact, GitHub and © Biz-Automation Co., Ltd. The full privacy note (section 11.2) lives at `/privacy` (owner, 8 Nov 2026).
 
 ### 11.3 The `/places` page (owner, 1 Nov 2026)
 
@@ -509,7 +509,7 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 - **JSON-LD:** on `/` only, a `WebSite` published by an `Organization` "Made Openly" (logo `/icon-512.png`, the GitHub repo in `sameAs`, parent organization Biz-Automation Co., Ltd., Bangkok).
 - **Icons:** square, drawn from the robot mascot by `scripts/render-icons.js`: `/favicon.svg`, `/favicon.ico` (32 and 48 px), `/apple-touch-icon.png` (180 px) and `/icon-512.png`, on every page. Google shows only a square favicon in results. (Owner, 1 Nov 2026; before this the icon was the 88 x 31 badge.)
 - **Addresses:** `/places/` and `/manage/` redirect (301) to the address without the slash, keeping the query. A missing page asked for by a browser gets a small `noindex` page with a link home; anything else keeps the plain-text 404.
-- **`/sitemap.xml`:** `/`, `/places` and `/music` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
+- **`/sitemap.xml`:** `/`, `/places`, `/music` and `/privacy` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
 - **`/robots.txt`:** Cloudflare's managed file (content signals), set on the zone. The Worker serves none, because a Worker robots.txt replaces the managed one (seen live 1 Nov 2026). The sitemap is submitted in Search Console instead.
 - `/manage` has no share tags and keeps `noindex`.
 
@@ -517,12 +517,12 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 
 Made Openly is also the artist name for songs made from the owner's essays. `/music` shows them, so people arriving from YouTube, TikTok or Suno find the songs, and each song is a worked example of the badge.
 
-- Same nav and styles as the main page, rendered on the server. Its footer is one small line: no cookies, YouTube loads only on play, then Privacy, Contact, GitHub and the owner (owner, 8 Nov 2026: the full badge privacy note was too heavy here).
+- Same nav, styles and one-line footer as the main page, rendered on the server.
 - One block per song: square cover, title, one line, the song's own badge (first song: Human + AI) linking to `/#labels`, a one-line breakdown of who made what, and only the outside links that exist (YouTube, TikTok, Suno, the essay).
 - The video is a YouTube embed behind a click. Until the reader presses play the page shows a local poster and loads nothing from YouTube; then it loads the player from `youtube-nocookie.com`, the only frame `/music` allows. No video ID yet: the poster and "The full video is coming to YouTube." With a video, the poster is the YouTube thumbnail (`/art/video-poster-*.jpg`) and a chapter list links each time to YouTube. First video: `uG2TsIxvBNE` on the @MadeOpenly channel (7 Nov 2026).
 - Pictures (raven in three styles, stills) live in `public/art/` as 800 and 1600 px JPEGs. `/music` has its own share image, `/art/sing-like-a-human-og.jpg` (1200 x 630).
 - The song pictures in `public/art/` are all rights reserved, outside the CC BY 4.0 badge artwork licence (owner, 7 Nov 2026). The page says so under each song.
-- The home page links to `/music` from the footer only, so the badge never reads as a promotion for the songs. The home page's privacy footer says when YouTube loads.
+- `/music` is the last item in the menu (owner, 8 Nov 2026), never in the hero, so the badge never reads as a promotion for the songs. The privacy note at `/privacy` says when YouTube loads.
 
 ### Style
 
