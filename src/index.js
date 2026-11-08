@@ -5,7 +5,6 @@ import { handleManage, handleManageList, handleRemove, handleSendKey, managePage
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
-import { handleMusic } from "./music.js";
 import { handlePrivacy } from "./privacy.js";
 import { HOME, headTags, shareImage, sitemap } from "./share.js";
 import { recordTokenless } from "./tokenless.js";
@@ -161,7 +160,7 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/manage/list") return handleManageList(request, env, ctx);
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
-  if (method === "GET" && pathname === "/music") return handleMusic(SHELL, CSP);
+  if (method === "GET" && (pathname === "/music" || pathname.startsWith("/art/"))) return musicPage(request, env, pathname);
   if (method === "GET" && pathname === "/privacy") return handlePrivacy(SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
@@ -179,6 +178,18 @@ function route(request, env, ctx, url) {
 }
 
 const PAGES = ["/places", "/manage", "/music", "/privacy"];
+
+// /music and its pictures under /art/ live in a separate, private Worker
+// (madeopenly-music), reached through the MUSIC service binding. Without the
+// binding, as in a fork or a test, the page simply does not exist.
+async function musicPage(request, env, pathname) {
+  if (!env.MUSIC) return notFound(request);
+  try {
+    return pathname === "/music" ? await env.MUSIC.page(SHELL, CSP) : await env.MUSIC.fetch(request);
+  } catch {
+    return notFound(request);
+  }
+}
 
 // A missing page gets a small page with the site's nav and a way home, for
 // browsers. Anything else (badges, API) keeps the plain-text answer.

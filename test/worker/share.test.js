@@ -105,7 +105,7 @@ describe("GET /robots.txt", () => {
 
 describe("site icons", () => {
   it("are square and linked from every page", async () => {
-    for (const path of ["/", "/places", "/manage", "/music"]) {
+    for (const path of ["/", "/places", "/manage", "/privacy"]) {
       const h = await head(path);
       expect(h).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32 48x48">');
       expect(h).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">');

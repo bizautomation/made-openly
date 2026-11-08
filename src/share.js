@@ -33,12 +33,8 @@ export const PLACES = {
   description: "Sites, repos, posts and products that wear the Made Openly badge and asked to be named. We count places, never visitors.",
 };
 
-export const MUSIC = {
-  url: `${ORIGIN}/music`,
-  title: "Music, made openly: Sing Like a Human",
-  description: "Songs made from essays about AI, each wearing the Made Openly badge and saying how it was made. First song: Sing Like a Human.",
-  image: { url: `${ORIGIN}/art/sing-like-a-human-og.jpg`, width: 1200, height: 630, alt: "A raven with spread wings over a red sea, painted in dark ember." },
-};
+// /music is served by the private music Worker; only its address is listed here.
+export const MUSIC = { url: `${ORIGIN}/music` };
 
 export const PRIVACY = {
   url: `${ORIGIN}/privacy`,
