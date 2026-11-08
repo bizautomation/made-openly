@@ -230,7 +230,9 @@ describe("15-minute check of new places", () => {
   });
 
   it("is wired to the 15-minute cron, separate from the weekly one", async () => {
-    await seed(T.link, { declared_url: "https://example.com/", status: "new", created_at: daysAgo(1) });
+    // scheduled() uses the real clock, so date the place from now, not from the fixed NOW.
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString();
+    await seed(T.link, { declared_url: "https://example.com/", status: "new", created_at: yesterday });
     await seed(T.img, { status: "new", created_at: "2020-01-01T00:00:00Z" });
     pages["https://example.com/"] = () => page(link(T.link));
     const ctx = createExecutionContext();
