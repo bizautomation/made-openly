@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 .credentials
 .wrangler/
 node_modules/
+
+# Character reference images (Mila Aydemir, Ayaz Emreev). Local only, all rights reserved.
+characters/
