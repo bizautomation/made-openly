@@ -513,17 +513,9 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 - **`/robots.txt`:** Cloudflare's managed file (content signals), set on the zone. The Worker serves none, because a Worker robots.txt replaces the managed one (seen live 1 Nov 2026). The sitemap is submitted in Search Console instead.
 - `/manage` has no share tags and keeps `noindex`.
 
-### 11.5 The `/music` page (owner, 7 Nov 2026)
+### 11.5 The `/music` page (owner, 7 Nov 2026; moved 9 Nov 2026)
 
-Made Openly is also the artist name for songs made from the owner's essays. `/music` shows them, so people arriving from YouTube, TikTok or Suno find the songs, and each song is a worked example of the badge.
-
-- Same nav, styles and one-line footer as the main page, rendered on the server.
-- One block per song: square cover, title, one line, the song's own badge (first song: Human + AI) linking to `/#labels`, a one-line breakdown of who made what, and only the outside links that exist (YouTube, TikTok, Suno, the essay).
-- The video is a YouTube embed behind a click. Until the reader presses play the page shows a local poster and loads nothing from YouTube; then it loads the player from `youtube-nocookie.com`, the only frame `/music` allows. No video ID yet: the poster and "The full video is coming to YouTube." With a video, the poster is the YouTube thumbnail (`/art/video-poster-*.jpg`) and a chapter list links each time to YouTube. First video: `uG2TsIxvBNE` on the @MadeOpenly channel (7 Nov 2026).
-- "The singers" (owner, 8 Nov 2026): the two invented leads, Mila Aydemir and Ayaz Emreev, each with a short bio, after the chapters. The bios never mention the song. Stills name them in their alt text. A wide picture of both under the raven heads the section, and each bio has a square portrait (`/art/singers-*.jpg`, `/art/singer-{mila,ayaz}-*.jpg`, owner, 9 Nov 2026).
-- Pictures (raven in three styles, stills) live in `public/art/` as 800 and 1600 px JPEGs. `/music` has its own share image, `/art/sing-like-a-human-og.jpg` (1200 x 630).
-- The song pictures in `public/art/` are all rights reserved, outside the CC BY 4.0 badge artwork licence (owner, 7 Nov 2026). The page says so under each song.
-- `/music` is the last item in the menu (owner, 8 Nov 2026), never in the hero, so the badge never reads as a promotion for the songs. The privacy note at `/privacy` says when YouTube loads.
+`/music` and its pictures under `/art/*` are served by a separate, private Worker, `madeopenly-music` (github.com/bizautomation/made-openly-music, a git submodule at `music/`). Its spec lives there. This Worker forwards `GET /music` and `GET /art/*` through the `MUSIC` service binding, passing its own head, nav, footer and CSP, so the page keeps the site's look. Without the binding (a fork, or local tests without the stub) `/music` and `/art/*` return the 404 page. `/music` stays the last item in the menu and in the sitemap.
 
 ### Style
 
