@@ -331,13 +331,15 @@ const BODY = `
     <h3>8.2 Green paint for a stronger change</h3>
     <p>A plain request to replace a face often changes almost nothing: the model protects a face it can see. Painting the face, or the whole head, in flat green removes what the model would protect, and it then draws the head from the reference.</p>
     ${list([
-      "On Ayaz's profile, a plain face correction on Seedream 5 Pro changed almost nothing. With the whole head painted green, the same model drew the new face.",
+      "On Ayaz's profile, a plain face correction on Seedream 5 Pro changed almost nothing. With the whole head painted green, the same model drew a new face.",
+      "<b>The result is only as close as its reference.</b> That first head came out too young, because the side reference was too young. It was replaced two days later with a head drawn from a better reference.",
       "On Mila's most difficult still, the green method reached 0.443 against 0.375 for a plain edit and 0.259 for the original.",
+      "In the album, faces turned more than about 25 degrees were corrected this way on GPT Image 2.5 Flare. The one shown below rose from 0.415 to 0.547 on the last run and was kept. That is just under the pass mark; her candid pictures score low even when the face is right.",
       "<b>The green shape sets the size of the head.</b> When the green was painted loosely, the model filled the whole patch and the head came out too large. Keeping the green close to the real outline of the head avoided this.",
       "With a loose patch, the prompt should ask for the face and the background inside the green area, not for a head that fills it. This wording is an observation from the work; it was not tested side by side.",
       "Paint only the person, never the background, when the background must stay.",
     ])}
-    ${fig("trick-green", 529, "Three pictures in a row of a man in profile on a stage. The original; the same picture with his whole head painted flat green; the result, with a new head of the same size drawn in the green area.", "Left: the original crop. Centre: the head painted green, close to its real outline. Right: the head drawn by the model from the face reference.")}
+    ${fig("trick-greenface", 529, "Three pictures in a row of a woman with a ponytail looking to one side. The original; the same picture with an oval of flat green over her face, cut to her outline; the result, with the face redrawn inside the oval and everything else unchanged.", "Left: the crop as it was. Centre: the face painted green, cut to her outline so that no background is painted. Right: the face drawn by the model from the face master. Hair, ear, clothes and background are untouched.")}
 
     <h3>8.3 One run for several faces, mapped from left to right</h3>
     <p>MiniMax H3 Max Recast on fal replaces people in a video. It accepts one to four reference pictures, one for each person, and maps them to the people in the picture from left to right. The market singer appeared in four clips, with a different face in each. A first run on one whole clip failed: her face was 60–88 pixels tall and the model kept the old one.</p>
