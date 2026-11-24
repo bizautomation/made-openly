@@ -461,7 +461,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for
 
 - Above the bars, one row of four numbers: **12** added · **8** active · **1** not seen lately · **3** not verified yet. Each number shows a short hint on hover or tap. Active: "We can see the badge there now." Not seen lately: "We saw it before, but not in the last 30 days." Not verified yet: "Added, but we haven't been able to see it yet. Substack and Medium often hide it from us."
 - Active places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay). A small **Show all added** toggle switches the bars to every added place by label.
-- The opt-in named list as a teaser: the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
+- The named list as a teaser: the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
 - One plain line under the counter: **"This counts places wearing the badge, not visitors. A place is active while we can see the badge there, through its image loading, a click on it, or by finding it on the page. We show every place that was added, including the ones we can't see."**
 
 ---
@@ -473,7 +473,7 @@ One page, mobile-first, one column on phones. A small jump menu at the top: Labe
 1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
 2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
 3. **Why.** Three or four lines from section 1 ("The idea").
-4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, unticked by default: "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button shows the result, calm and short:
+4. **Badge picker.** Choose label, size (large default), style, robot or wordmark, mascot. Live preview from `/badge.svg`. Optional field: "Where will this badge live? (paste the page address)". Under it a checkbox, ticked by default (owner, 24 Nov 2026; a maker can untick it): "Name this place on the public list", with the hint "Your place appears on the list after the badge is found there and we approve it." Then a "This is a product" checkbox. Turnstile. A **Generate** button shows the result, calm and short:
 
    - "✓ Your badge is ready", the snippet and one main button, **Copy badge**. When the list box was ticked, one line: "You asked to be named. Once the badge is found and approved, your place appears on the list."
    - A row, **"On Substack, Medium or Notion?"**, open when the address is a Substack or Medium page, closed otherwise. Their editors don't take HTML, so it gives four steps: download the badge PNG, add it as an image, link the image to `https://madeopenly.com/?t=TOKEN` (with Copy), and set the alt text "Made Openly: <label>" (with Copy). "It counts when a reader clicks it, or when we find the link on your page."
@@ -559,7 +559,7 @@ No cookie banner is needed: nothing is stored on the visitor's device. A short l
 
 Only the public **named list** is moderated. The **counts are never moderated**: every active place counts, whatever it is.
 
-1. Listing is opt-in and off by default (`listed='no'`).
+1. Listing is the maker's choice. A badge made through the API without `list` stays `listed='no'`. On the page, the "Name this place on the public list" box is ticked by default and a maker can untick it (owner, 24 Nov 2026). Nothing is named without a sighting and the owner's approval.
 2. A maker asks to be named at Generate (the "Name this place on the public list" box), later with the "Ask to be named" form (`POST /api/list`), or on `/manage` with the badge key. A place not seen yet gets `listed='asked'`; its first sighting moves it to `listed='pending'`. A place already seen goes straight to `pending`. Either way it waits for a first sighting, then for the owner's approval.
 3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`. `asked` places never appear in the email.
 4. Every listed place on `/places` shows a small **Report** action → `listed='reported'`, hidden until the owner reviews it. Only `yes` places can be reported. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
