@@ -302,7 +302,10 @@ ${TOC.row}
     ${list(["1080p, 5 s, 150 credits. Used for the head-raise shot on the line “Can she?”, which was kept as generated."])}
 
     <h3 id="m4-9">4.9 LTX 2.3, audio-to-video ${N}</h3>
-    ${list(["It was the only model that made light events inside the scene from a prompt, but only about 6 of 14 runs were usable. The failures were frozen mouths, a cut to strangers, and a floating light bulb."])}
+    ${list([
+      "It was the only model that made light events inside the scene from a prompt, but only about 6 of 14 runs were usable. The failures were frozen mouths, a cut to strangers, and a floating light bulb.",
+      "<b>The take shown below happened once.</b> It was not repeated in the project. Later runs with the same prompt did bring light into the scene, but not this result: the light turned green or yellow, the face turned away from the camera, or lens flares covered it. The other runs failed in the ways listed above. The same prompt does not guarantee the same result.",
+    ])}
     ${fig("ltx-seq", 178, "Five frames in a row of a man rapping into a hand-held microphone. In the first three he is in near darkness. In the fourth a cool light rises behind him. In the fifth the whole frame is flooded with white-blue light and haze.", "Five frames from one two-second take in the first cut of the film (7 November 2026), left to right. The flood of light was asked for in the prompt and made by the model inside the scene. The character's face was remade later, so this take is not in the final cut.").replace('class="fig"', 'class="fig fig-seq"')}
     ${TOP}
   </div>

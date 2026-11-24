@@ -58,6 +58,8 @@ describe("GET /music/models, the model fit review", () => {
     expect(imgs[0]).toContain('src="/art/tricks/ltx-seq-800.jpg"');
     expect(imgs[0]).toMatch(/ width="1600" height="178" alt="[^"]{40,}" loading="lazy"/);
     expect(html.indexOf("ltx-seq-800.jpg")).toBeGreaterThan(html.indexOf('id="m4-9"'));
+    expect(html).toContain("<b>The take shown below happened once.</b>");
+    expect(html).toContain("The same prompt does not guarantee the same result.");
     expect(html).toContain('<nav class="tabs" aria-label="Model review"><a href="/music/models" aria-current="page">Models and prices</a><a href="/music/methods">Methods</a></nav>');
   });
 
