@@ -11,26 +11,26 @@ const table = (head, rows) =>
   `<div class="scroll"><table><thead><tr>${head.map((h) => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows
     .map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${c}</th>` : `<td>${c}</td>`)).join("")}</tr>`)
     .join("")}</tbody></table></div>`;
-const list = (items) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
+export const list = (items) => `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
 
 const QUICK = table(
   ["Task", "Model used", "Price", "Reason"],
   [
-    ["First pass of a still image: layout, people and feeling", "GPT Image 2.5 Flare, image-to-image", "12 credits (2K, medium); 7 credits (1K, low)", "The lowest price. It follows layout references, and it produced the warmest face in the film."],
-    ["Final face pass on a still image", "Seedream 5 Pro, image-to-image, 2K", "60 credits, plus about 2 per additional reference", "Raises the image to 2816 × 1584. Likeness was best when it was given only the face master."],
-    ["Photographic look pass (the feel of a real candid photograph)", "Seedream 5 Pro, image-to-image, 2K, one input", "60 credits", "Keeps faces and layout. Adds grain, pores and muted colour."],
-    ["Face correction on a crop; new face masters", "Seedream 5.5, image-to-image, 2K", "32 credits, plus about 5 per reference", "Softer, friendlier faces. Performs well on crops and masters."],
-    ["Small edits (microphone, collar, background plate, closed mouth)", "GPT Image 2.5 Flare", "12 credits", "The default low-cost editing model."],
-    ["Edits in which pose and face must not move", "Nano Banana Pro", "About 40 credits", "Stays closest to the source image."],
-    ["Character views and background plates", "Wan 2.7 Image Pro", "15 credits", "Copies the reference closely."],
-    ["Rap performance takes", "MiniMax H3 Max, image-to-video (fal)", "About $1 per 1080p take", "Takes a prompt and audio. The mouth tracks the words, and motion follows the still."],
-    ["Mila's fully sung words and belted notes", "OmniHuman 2.0", "$0.10 per second", "Opens the mouth on full words. The most emotion of the models tried."],
-    ["Soft, quiet sung words", "HeyGen Avatar IV", "$0.045 per second", "A natural, small mouth movement."],
-    ["Two-person face-off lip sync", "InfiniteTalk Multi (WaveSpeed)", "$0.06 per second at 720p", "The only model tried with separate left and right audio. It kept the beard and the age of the face."],
-    ["Silent motion, reactions and atmosphere", "Kling 3.0 Pro", "105 credits for 3 s; 175 for 5 s; 350 for 10 s", "Clean silent clips. It obeys a locked camera."],
-    ["A short silent hero shot", "PixVerse V6, 1080p", "150 credits for 5 s", "Kept face ratios within 1–3 %."],
-    ["Video from 720p to 1080p", "ByteDance video upscaler", "$0.0072 per second", "Keeps the face, lips and beard."],
-    ["Audio stems and timing", "Demucs (run locally)", "Free", "The vocal stem sets the timing of the cuts."],
+    ["First pass of a still image: layout, people and feeling", `<a href="#m2-1">GPT Image 2.5 Flare, image-to-image</a>`, "12 credits (2K, medium); 7 credits (1K, low)", "The lowest price. It follows layout references, and it produced the warmest face in the film."],
+    ["Final face pass on a still image", `<a href="#m2-2">Seedream 5 Pro, image-to-image, 2K</a>`, "60 credits, plus about 2 per additional reference", "Raises the image to 2816 × 1584. Likeness was best when it was given only the face master."],
+    ["Photographic look pass (the feel of a real candid photograph)", `<a href="#m2-2">Seedream 5 Pro, image-to-image, 2K, one input</a>`, "60 credits", "Keeps faces and layout. Adds grain, pores and muted colour."],
+    ["Face correction on a crop; new face masters", `<a href="#m2-3">Seedream 5.5, image-to-image, 2K</a>`, "32 credits, plus about 5 per reference", "Softer, friendlier faces. Performs well on crops and masters."],
+    ["Small edits (microphone, collar, background plate, closed mouth)", `<a href="#m2-1">GPT Image 2.5 Flare</a>`, "12 credits", "The default low-cost editing model."],
+    ["Edits in which pose and face must not move", `<a href="#m2-6">Nano Banana Pro</a>`, "About 40 credits", "Stays closest to the source image."],
+    ["Character views and background plates", `<a href="#m2-7">Wan 2.7 Image Pro</a>`, "15 credits", "Copies the reference closely."],
+    ["Rap performance takes", `<a href="#m4-1">MiniMax H3 Max, image-to-video (fal)</a>`, "About $1 per 1080p take", "Takes a prompt and audio. The mouth tracks the words, and motion follows the still."],
+    ["Mila's fully sung words and belted notes", `<a href="#m4-3">OmniHuman 2.0</a>`, "$0.10 per second", "Opens the mouth on full words. The most emotion of the models tried."],
+    ["Soft, quiet sung words", `<a href="#m4-4">HeyGen Avatar IV</a>`, "$0.045 per second", "A natural, small mouth movement."],
+    ["Two-person face-off lip sync", `<a href="#m4-5">InfiniteTalk Multi (WaveSpeed)</a>`, "$0.06 per second at 720p", "The only model tried with separate left and right audio. It kept the beard and the age of the face."],
+    ["Silent motion, reactions and atmosphere", `<a href="#m4-7">Kling 3.0 Pro</a>`, "105 credits for 3 s; 175 for 5 s; 350 for 10 s", "Clean silent clips. It obeys a locked camera."],
+    ["A short silent hero shot", `<a href="#m4-8">PixVerse V6, 1080p</a>`, "150 credits for 5 s", "Kept face ratios within 1–3 %."],
+    ["Video from 720p to 1080p", `<a href="#upscalers">ByteDance video upscaler</a>`, "$0.0072 per second", "Keeps the face, lips and beard."],
+    ["Audio stems and timing", `<a href="#local">Demucs (run locally)</a>`, "Free", "The vocal stem sets the timing of the cuts."],
   ],
 );
 
@@ -45,8 +45,47 @@ const UPSCALERS = table(
   ],
 );
 
-const fig = (name, h, alt, caption) =>
-  `<figure class="fig"><img src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w" sizes="(min-width: 960px) 820px, 100vw" width="1600" height="${h}" alt="${alt}" loading="lazy" decoding="async"><figcaption>${caption}</figcaption></figure>`;
+// The two pages of the review share one strip of tabs under the heading.
+export const tabs = (here) =>
+  `<nav class="tabs" aria-label="Model review">${[
+    ["/music/models", "Models and prices"],
+    ["/music/methods", "Methods"],
+  ]
+    .map(([href, text]) => `<a href="${href}"${href === here ? ' aria-current="page"' : ""}>${text}</a>`)
+    .join("")}</nav>`;
+
+export const DISCLAIMER = `<aside class="disclaimer" aria-labelledby="disclaimer-h">
+      <h2 id="disclaimer-h">Disclaimer</h2>
+      <p>These findings are one person's experience on one music-video project, carried out between 7 and 24 November 2026. They are not benchmarks, and they were not produced under controlled test conditions. A different project, subject or prompt may give a different result.</p>
+      <p>Models, prices and billing rules change. Please check the current price with the provider before running anything.</p>
+    </aside>`;
+
+// The list of sections, drawn twice: beside the text on wide screens, and as
+// one closed row that stays under the header on phones.
+// items: [href, text, [[href, text], ...]?]
+export const toc = (items) => {
+  const ol = `<ol>${items
+    .map(([href, text, sub]) => `<li><a href="${href}">${text}</a>${sub ? `<ul>${sub.map(([h, t]) => `<li><a href="${h}">${t}</a></li>`).join("")}</ul>` : ""}</li>`)
+    .join("")}</ol>`;
+  return {
+    side: `<aside class="toc-side"><nav class="toc" aria-label="On this page"><p class="toc-h">On this page</p>${ol}</nav></aside>`,
+    row: `<details class="toc-m"><summary>On this page</summary><nav aria-label="On this page, short">${ol}</nav></details>`,
+  };
+};
+export const TOP = '<p class="top"><a href="#top">Back to top</a></p>';
+
+const TOC = toc([
+  ["#quick", "Summary of recommendations"],
+  ["#stills", "Still-image models", [["#m2-1", "GPT Image 2.5 Flare"], ["#m2-2", "Seedream 5 Pro"], ["#m2-3", "Seedream 5.5"], ["#m2-4", "Seedream 5 Lite and 4.5"], ["#m2-5", "GPT Image 2.6 Sunburst"], ["#m2-6", "Nano Banana Pro"], ["#m2-7", "Wan 2.7 Image Pro"]]],
+  ["#warm-face", "The warm-face method"],
+  ["#video", "Video: performance and lip sync", [["#m4-1", "MiniMax H3 Max"], ["#m4-2", "H3 Max Lip Sync"], ["#m4-3", "OmniHuman 2.0"], ["#m4-4", "HeyGen Avatar IV"], ["#m4-5", "InfiniteTalk"], ["#m4-6", "Sync lipsync-3"], ["#m4-7", "Kling 3.0"], ["#m4-8", "PixVerse V6"], ["#m4-9", "LTX 2.3"]]],
+  ["#upscalers", "Upscalers"],
+  ["#local", "Local tools"],
+  ["#prompts", "Prompt rules"],
+  ["#methods", "Methods that worked"],
+  ["#billing", "Prices and billing"],
+  ["#open", "Open questions"],
+]);
 
 const BODY = `
 <section class="models-head">
@@ -54,36 +93,22 @@ const BODY = `
     <p class="crumb"><a href="/music">Music</a> <span aria-hidden="true">/</span> Model review</p>
     <h1>Model fit review: which AI model was used for which task</h1>
     <p class="soft">A record of the AI image, video and audio models used to make the music video <a href="/music">Sing Like a Human</a> between 7 and 24 November 2026: what each was used for, what it cost, and where it fell short.</p>
-    <aside class="disclaimer" aria-labelledby="disclaimer-h">
-      <h2 id="disclaimer-h">Disclaimer</h2>
-      <p>These findings are one person's experience on one music-video project, carried out between 7 and 24 November 2026. They are not benchmarks, and they were not produced under controlled test conditions. A different project, subject or prompt may give a different result.</p>
-      <p>Models, prices and billing rules change. Please check the current price with the provider before running anything.</p>
-    </aside>
+    ${tabs("/music/models")}
+    ${DISCLAIMER}
     <p class="small soft">Compiled from the project's model notes (163 findings), its decision log and its run logs. Prices are given in OpenArt credits, or in US dollars as billed by fal or WaveSpeed. Last checked on 24 November 2026; prices on OpenArt were quoted again on that day.</p>
     <p class="small soft">Each model carries one of three assessments. ${R} means proven and used in the film. ${M} means mixed results or not fully tested. ${N} means rejected for this project.</p>
   </div>
 </section>
 
+${TOC.row}
 <div class="wrap models-grid">
-  <aside class="toc-side">
-    <nav class="toc" aria-label="On this page"><p class="toc-h">On this page</p><ol>
-      <li><a href="#quick">Summary of recommendations</a></li>
-      <li><a href="#stills">Still-image models</a></li>
-      <li><a href="#warm-face">The warm-face method</a></li>
-      <li><a href="#video">Video: performance and lip sync</a></li>
-      <li><a href="#upscalers">Upscalers</a></li>
-      <li><a href="#local">Local tools</a></li>
-      <li><a href="#prompts">Prompt rules</a></li>
-      <li><a href="#methods">Methods that worked</a></li>
-      <li><a href="#billing">Prices and billing</a></li>
-      <li><a href="#open">Open questions</a></li>
-    </ol></nav>
-  </aside>
+  ${TOC.side}
   <div class="models-body">
 <section id="quick">
   <div class="wrap">
     <h2>1. Summary of recommendations</h2>
     ${QUICK}
+    ${TOP}
   </div>
 </section>
 
@@ -91,7 +116,7 @@ const BODY = `
   <div class="wrap">
     <h2>2. Still-image models</h2>
 
-    <h3>2.1 GPT Image 2.5 Flare: first pass and low-cost edits ${R}</h3>
+    <h3 id="m2-1">2.1 GPT Image 2.5 Flare: first pass and low-cost edits ${R}</h3>
     <p><b>Price.</b> 7 credits at 1K, low quality; 12 credits at 2K, medium quality. It was billed at 19–39 credits at 1K when several references were supplied.</p>
     <p><b>Strengths.</b></p>
     ${list([
@@ -110,7 +135,7 @@ const BODY = `
     ])}
     <p><b>Working rule.</b> Iterate at 1K until layout, costume and light are right. At that stage the face needs only to be approximately right.</p>
 
-    <h3>2.2 Seedream 5 Pro: face pass and photographic look pass ${R}</h3>
+    <h3 id="m2-2">2.2 Seedream 5 Pro: face pass and photographic look pass ${R}</h3>
     <p><b>Price.</b> At 2K, 60 credits with one reference and 64 credits with three references (quoted on 24 November). At 1K, 30 credits. In practice it was billed at 62–68 credits. On fal, $0.0675 per image.</p>
     <p><b>Face pass</b> (the workflow adopted on 21 November: work until the image is right, then apply Seedream over it).</p>
     ${list([
@@ -134,7 +159,7 @@ const BODY = `
       "It sometimes lists only two of three references. Whether the third is used has not been established.",
     ])}
 
-    <h3>2.3 Seedream 5.5: soft face corrections and new masters ${R} <span class="when">since 22 November</span></h3>
+    <h3 id="m2-3">2.3 Seedream 5.5: soft face corrections and new masters ${R} <span class="when">since 22 November</span></h3>
     <p><b>Price.</b> It charges per reference. Quoted on 24 November at 2K, 16:9: 32 credits for text-to-image, 37 with one reference, 47 with three references. Billed at 42 credits with two references (in batches of 3 and 4) and 47 with three references.</p>
     <p><b>Sizes.</b> 1K, 1.5K and 2K. Up to 10 references. A transparent background is available.</p>
     <p><b>Results.</b></p>
@@ -147,21 +172,21 @@ const BODY = `
     <p><b>Not yet tested.</b> Use as the photographic look finisher. A one-input pass would cost 37 credits, against 60 on Seedream 5 Pro.</p>
     <p><b>Billing discrepancy.</b> The park-bench run of 23 November was billed at 37 credits per image with three references, where the quote on 24 November was 47. This has not been explained.</p>
 
-    <h3>2.4 Seedream 5 Lite and Seedream 4.5 ${M}</h3>
+    <h3 id="m2-4">2.4 Seedream 5 Lite and Seedream 4.5 ${M}</h3>
     ${list([
       "15 credits at 2K. Up to 14 references. Seedream 4.5 goes to 4K for the same price; Seedream 5 Lite goes to 3K.",
       "Seedream 5 Lite made the two references behind the first version of the entry still, which was then passed through Seedream 5 Pro. Seedream 4.5 was used for edits only.",
       "The charge per reference was not checked.",
     ])}
 
-    <h3>2.5 GPT Image 2.6 Sunburst ${M}</h3>
+    <h3 id="m2-5">2.5 GPT Image 2.6 Sunburst ${M}</h3>
     ${list([
       "34–55 credits at 2K, high quality. It was often billed above the quote (55 against 40).",
       "The best retouching of skin and make-up. It made Mila's stage make-up master, and it changed apparent age where Wan could not (a younger master for Ayaz).",
       "It redraws the whole person on each pass: polished skin, a reshaped neck, and in one case a sneer that became a caricature. It should be run once from the master, and never chained.",
     ])}
 
-    <h3>2.6 Nano Banana Pro ${R} <span class="when">for minimal edits</span></h3>
+    <h3 id="m2-6">2.6 Nano Banana Pro ${R} <span class="when">for minimal edits</span></h3>
     ${list([
       "About 40 credits on OpenArt; $0.14–0.15 elsewhere.",
       "It holds pose, position and face best. Edits to props and backgrounds left the pixels of the face almost unchanged (a difference of about 4–5 in 255).",
@@ -169,12 +194,13 @@ const BODY = `
       `Nano Banana 2 Lite: the background edit was poor and the output only 1376 × 768. ${N}`,
     ])}
 
-    <h3>2.7 Wan 2.7 Image Pro ${R} <span class="when">for character views only</span></h3>
+    <h3 id="m2-7">2.7 Wan 2.7 Image Pro ${R} <span class="when">for character views only</span></h3>
     ${list([
       "15 credits at any aspect ratio.",
       "It copies the reference closely: three-quarter, profile and full-body views (face width within 2 %), and background plates.",
       "It cannot change apparent age. It copies an old face if one is among the references, and copies a previous take almost whole. A take should never be supplied as a reference.",
     ])}
+    ${TOP}
   </div>
 </section>
 
@@ -193,6 +219,7 @@ const BODY = `
       "Once a face is warm, it should not be corrected again. A score below 0.55 can still be the best picture: the score measures identity, not warmth.",
       "Cost: 12 + 60 = 72 credits per still at 2K.",
     ])}
+    ${TOP}
   </div>
 </section>
 
@@ -200,7 +227,7 @@ const BODY = `
   <div class="wrap">
     <h2>4. Video: performance and lip sync</h2>
 
-    <h3>4.1 MiniMax H3 Max, image-to-video (fal) ${R} <span class="when">for rap</span></h3>
+    <h3 id="m4-1">4.1 MiniMax H3 Max, image-to-video (fal) ${R} <span class="when">for rap</span></h3>
     ${list([
       "It takes a prompt and the target audio. Output length is fixed at about 8.03 s or about 11.55 s, so the audio is padded and the result trimmed.",
       "Under the rap plan of 15 November, all 7 takes passed the face-drift check, with the mouth open on 61–79 % of frames. The first rap section was approved on these takes.",
@@ -218,7 +245,7 @@ const BODY = `
       `Shots with two people lost Ayaz's beard and age. ${N} for face-offs.`,
     ])}
 
-    <h3>4.2 MiniMax H3 Max Lip Sync (no prompt) ${M}</h3>
+    <h3 id="m4-2">4.2 MiniMax H3 Max Lip Sync (no prompt) ${M}</h3>
     ${list([
       "$0.05 per second. It takes an image and audio only. It keeps the face and age closer than HeyGen does.",
       "It is too still for rap (nods of 8–14°, against 23–28° on image-to-video). It suits calm sung lines; one of Mila's takes for the second chorus is in the final cut.",
@@ -226,7 +253,7 @@ const BODY = `
       "Held vowels on a front-facing face become a round “oh”. OmniHuman should be used for those.",
     ])}
 
-    <h3>4.3 OmniHuman 2.0 ${R} <span class="when">for Mila's fully sung words</span></h3>
+    <h3 id="m4-3">4.3 OmniHuman 2.0 ${R} <span class="when">for Mila's fully sung words</span></h3>
     ${list([
       "$0.10 per second, billed per whole second. 720p at 24 frames per second only, so an upscale should be planned.",
       "It opens the mouth on full words and held belted notes, and gives the most emotion. 7 of Mila's 12 takes in the final cut were made with it.",
@@ -234,14 +261,14 @@ const BODY = `
       "The content filter flags close, front-facing stills of Mila at random (these runs were refunded). A side or low-angle backup should be kept.",
     ])}
 
-    <h3>4.4 HeyGen Avatar IV ${M} <span class="when">soft words only</span></h3>
+    <h3 id="m4-4">4.4 HeyGen Avatar IV ${M} <span class="when">soft words only</span></h3>
     ${list([
       "$0.045 per second on WaveSpeed ($0.10 per second on fal, without a direction field). 1080p.",
       "Natural on soft words; it barely opens the mouth on full words. It adds a friendly smile and smoothing, and the background drifts towards grey-green. One face per run.",
       "Identity should be checked on every take: one take of Mila read as a different woman (jaw +24 %).",
     ])}
 
-    <h3>4.5 InfiniteTalk and InfiniteTalk Multi (WaveSpeed) ${R} <span class="when">for face-offs</span></h3>
+    <h3 id="m4-5">4.5 InfiniteTalk and InfiniteTalk Multi (WaveSpeed) ${R} <span class="when">for face-offs</span></h3>
     ${list([
       "$0.06 per second at 720p. Multi is the only model tried with separate left and right audio (its “meanwhile” mode).",
       "A music-only track for the listening character keeps that character's lips closed.",
@@ -250,13 +277,13 @@ const BODY = `
       "Prompts should name only visible actions. “Natural” and “casually” have no effect, and words about breath produce vapour.",
     ])}
 
-    <h3>4.6 Sync lipsync-3 ${M}</h3>
+    <h3 id="m4-6">4.6 Sync lipsync-3 ${M}</h3>
     ${list([
       "$0.135 per second ($8 per minute). A video-to-video mouth pass on one speaker.",
       "It reduced frames with visible teeth from 60 to 15 over a three-quarter InfiniteTalk take. It made a front-facing snarl worse (227 to 249). It should be used only over neutral three-quarter takes.",
     ])}
 
-    <h3>4.7 Kling 3.0 ${R} <span class="when">for silent clips</span></h3>
+    <h3 id="m4-7">4.7 Kling 3.0 ${R} <span class="when">for silent clips</span></h3>
     ${list([
       "Pro: 105 credits for 3 s, 175 for 5 s, 350 for 10 s. Standard: 125 credits for 5 s. It was billed above the quote once (276 against 250).",
       "In the film: the chrome dissolve, the back-to-back shots, the raven-cloth loop, Mila's reaction clips and the ending shot.",
@@ -267,11 +294,12 @@ const BODY = `
       "The camera is as smooth as a gimbal. Handheld shake should be added locally for the feel of a phone.",
     ])}
 
-    <h3>4.8 PixVerse V6 ${R} <span class="when">for one silent shot</span></h3>
+    <h3 id="m4-8">4.8 PixVerse V6 ${R} <span class="when">for one silent shot</span></h3>
     ${list(["1080p, 5 s, 150 credits. Used for the head-raise shot on the line “Can she?”, which was kept as generated."])}
 
-    <h3>4.9 LTX 2.3, audio-to-video ${N}</h3>
+    <h3 id="m4-9">4.9 LTX 2.3, audio-to-video ${N}</h3>
     ${list(["It was the only model that made light events inside the scene from a prompt, but only about 6 of 14 runs were usable. The failures were frozen mouths, a cut to strangers, and a floating light bulb."])}
+    ${TOP}
   </div>
 </section>
 
@@ -279,6 +307,7 @@ const BODY = `
   <div class="wrap">
     <h2>5. Upscalers</h2>
     ${UPSCALERS}
+    ${TOP}
   </div>
 </section>
 
@@ -292,6 +321,7 @@ const BODY = `
       "<b>ffmpeg light passes and strobes.</b> Frame-exact effects. Mist added locally looked like stains.",
       "<b>Demucs.</b> The vocal stem for timing (subtitle times were 0.15–0.34 s off), and band-only stems for the listening character's audio tracks.",
     ])}
+    ${TOP}
   </div>
 </section>
 
@@ -310,116 +340,16 @@ const BODY = `
       "Pad lip-sync audio by 0.6–1 s, and cut before the mouth closes at the end.",
       "Do not ask Ayaz to stare to the left.",
     ])}
+    ${TOP}
   </div>
 </section>
 
 <section id="methods">
   <div class="wrap">
     <h2>8. Methods that worked</h2>
-    <p>These are working methods, not models. Each one was found during the project and used in the film. Where a point rests on observation only, the text says so.</p>
-
-    <h3>8.1 Crop, change, paste back</h3>
-    <p>When a face is small in the frame, the model is given too few pixels to work on, and an edit of the whole picture changes things that should stay. The area around the head is cut out, the model works on that crop alone, and the result is pasted back with a soft edge.</p>
-    ${list([
-      "The rest of the picture stays identical, pixel for pixel.",
-      "The face is larger in the crop, so the model has more to work with. A crop of about three times the width of the face, enlarged to 1024 pixels, worked well.",
-      "The result is aligned to the original before it is pasted, because the model may shift the head by a few pixels.",
-      "On the market singer, the likeness score of one still rose from 0.17 to 0.66 in a single pass on Seedream 5.5.",
-    ])}
-    ${fig("trick-crop", 420, "Three pictures in a row. A wide night-market scene with a white square drawn around the singer's head; the cut-out square before the change; the same square after the change, with a different face.", "Left: the still, with the area that was cut out. Centre: the crop as it was. Right: the crop after the change, before it was pasted back.")}
-
-    <h3>8.2 Green paint for a stronger change</h3>
-    <p>A plain request to replace a face often changes almost nothing: the model protects a face it can see. Painting the face, or the whole head, in flat green removes what the model would protect, and it then draws the head from the reference.</p>
-    ${list([
-      "On Ayaz's profile, a plain face correction on Seedream 5 Pro changed almost nothing. With the whole head painted green, the same model drew a new face.",
-      "<b>The result is only as close as its reference.</b> That first head came out too young, because the side reference was too young. It was replaced two days later with a head drawn from a better reference.",
-      "On Mila's most difficult still, the green method reached 0.443 against 0.375 for a plain edit and 0.259 for the original.",
-      "In the album, faces turned more than about 25 degrees were corrected this way on GPT Image 2.5 Flare.",
-      "<b>The taxi driver was recast this way</b> (shown below), on Nano Banana Pro. His head and the phone on the dashboard were painted green. The prompt named each green area in turn: the first to be filled with the glass behind it, the second with the new driver at “the same head size, position and angle as the original driver”.",
-      "<b>The green shape sets the size of the head.</b> When the green was painted loosely, the model filled the whole patch and the head came out too large. Keeping the green close to the real outline of the head helped.",
-      "The prompt should also say so. The wording that held was: “paint his head so that it fits entirely inside this green shape … the head must not be bigger than the green area”. A prompt that asks the model to fill the area invites a larger head.",
-      "Where background had to be repainted as well, a second colour was used: green for the heads, and magenta for areas that are “background only, never part of a head, hair or body”.",
-      "Paint only the person, never the background, when the background must stay.",
-    ])}
-    ${fig("trick-paint", 397, "Three pictures in a row of a man driving a turquoise taxi at night in the rain. The original, with an older driver and a phone mounted by the windscreen; the same picture with a green square over the phone and a loose green shape over the head; the result, with a different man at the same size and the phone gone.", "Left: the frame before. Centre: the picture sent to the model, with the phone and the head painted green. Right: the result, which became the start frame of the shot in the film after a light colour correction.")}
-
-    <h3>8.3 One run for several faces, mapped from left to right</h3>
-    <p>MiniMax H3 Max Recast on fal replaces people in a video. It accepts one to four reference pictures, one for each person, and maps them to the people in the picture from left to right. The market singer appeared in four clips, with a different face in each. A first run on one whole clip failed: her face was 60–88 pixels tall and the model kept the old one.</p>
-    <ol>
-      <li>Her head was tracked in each clip, and a tall column was cut around it.</li>
-      <li>The four columns were joined side by side into one video. Her face was now about 216 pixels tall in every column.</li>
-      <li>Four references were supplied in the same order from left to right, each chosen for the angle of the head in its column: three-quarter, front, three-quarter mirrored, front.</li>
-      <li>The prompt read: “Four people, left to right. Replace person 1 with reference 1, person 2 with reference 2, person 3 with reference 3, person 4 with reference 4.”</li>
-      <li>The result was cut back into columns, and each was pasted into its own clip with a soft oval around the head.</li>
-    </ol>
-    ${list([
-      "The mapping from left to right held, although all four columns show the same person.",
-      "One run changed four clips. The list price was about $1.56 at 1080p; the amount charged was not confirmed.",
-      "The median likeness score rose from about 0 to 0.15–0.33. The faces are below the size at which the score is reliable, so the result was also judged by eye.",
-      "The references must have different addresses. Supplying the same picture twice was refused; the same file uploaded a second time was accepted.",
-    ])}
-    ${fig("trick-strip", 1810, "Two rows of four tall panels, each showing a singer with a guitar at a microphone. In the top row the four faces differ from each other. In the bottom row all four show the same face.", "Top: the four clips joined side by side, with four different faces. Bottom: the same frame after one run, with one face. The grey shape in the third column is a passer-by.")}
-
-    <p><b>The same idea on stills (24 November).</b> Replacing a face in several pictures normally costs one paid run for each picture. Three pictures were corrected in one run of Seedream 5.5.</p>
-    <ol>
-      <li>Free and local: the head in each picture was cut out as a 3:4 box, 3.2 times the width of the face, and the three boxes were laid side by side with grey gaps on one 21:9 strip. The position of each box was saved.</li>
-      <li>One paid run: Seedream 5.5, image-to-image, 2K, 21:9, with the strip and the face masters. The prompt asked for the face to be replaced in each panel, for the size, angle, gaze, hair, light and framing of each head to be kept, for the grey gaps to be kept, and for the panels not to be merged.</li>
-      <li>Free and local: each panel was cut back out, aligned to its original crop, and pasted back as a soft oval over the face only.</li>
-    </ol>
-    ${list([
-      "One run was billed at 47 credits and corrected three faces. Three separate runs of the same kind were billed at 126 credits on 22 November. The model kept all three panels and the gaps.",
-      "The likeness score against the three-quarter master rose in all three: 0.165 to 0.350, 0.596 to 0.624 and 0.558 to 0.598. No seam was visible.",
-      "A face that is small in its source (about 100 pixels) comes back soft and still fails. Faces in the strip should be large, over about 200 pixels.",
-      "One set of masters must suit the angle of every panel. The model could merge the panels; it did not here.",
-    ])}
-
-    <h3>8.4 One measure for each question</h3>
-    ${list([
-      "<b>Identity.</b> The ArcFace score against the masters; a pass is 0.55 or higher. Pictures of the same character scored 0.78–0.88 against each other.",
-      "<b>Proportions and position.</b> Apple Vision landmarks. Jaw and chin ratios could not tell two different faces apart, so they were never used for identity.",
-      "<b>Head size after an edit.</b> The face box before and after. A change of more than 5 % was flagged, because edit models often draw the head larger.",
-      "<b>Comparison by eye.</b> Only on a sheet where every face is drawn at the same scale.",
-      "The ArcFace score is weak on profiles and on faces under about 120 pixels. Those were judged by eye.",
-    ])}
-
-    <h3>8.5 What the likeness score does not see</h3>
-    <p>The pass mark is an ArcFace score of 0.55 against the character's masters. The score compares the layout of the eyes, nose and mouth. It does not see hair colour or texture, skin tone, freckles or make-up, and it is weak on faces near profile.</p>
-    ${list([
-      "One picture passed at 0.598 against Mila's three-quarter master, and to the eye it still did not look like her. The likely reasons, on inspection: near-black, sleek hair where hers is mid-brown and wavy; a face lit from behind, so that her eyes and freckles barely showed; a head turned near profile; and smoother, younger skin. The face had been corrected, but only inside its oval; everything around it came from the base picture.",
-      "On 24 November the same prompt and references were run on GPT Image 2.5 Flare and on Seedream 5 Pro. The scores were nearly equal (0.535 and 0.543 on average). By eye the Flare picture was closer to Mila: freckles, brow and nose. In the Seedream picture the face was turned near profile and lit from behind.",
-      "Flare also kept the real place in the background, where Seedream drew a generic one. Seedream gave neater hair and more realistic skin. The runs were billed at 36 and 64 credits.",
-      "Mila's own front master scores only 0.63 against her stills from the film, and the warmest picture of her in the project scored 0.536. A pass means “not a stranger”. It does not mean “reads as her”.",
-      "What followed in practice: light the face from the front or the side; a three-quarter view at most; name the colour and texture of the hair in the prompt; use the cheaper model for first passes; and let a person's eye make the final decision.",
-    ])}
-
-    <h3>8.6 Teeth correction, calibrated for each clip</h3>
-    <p>Lip-sync models often draw teeth that glow. The correction is local and free, and it changes only a box around the lips.</p>
-    ${list([
-      "Each clip is measured in its own light. Fixed settings were wrong from one light to the next.",
-      "Glare is brought halfway down towards the lit skin, and colour is moved halfway towards the white of the eye. A full correction met its targets but looked beige and grey.",
-      "It cannot correct the shape of teeth, or flicker between frames. Those are hidden in the edit.",
-    ])}
-    ${fig("trick-teeth", 447, "Two close pictures of the same open mouth. On the left the teeth glow bright white. On the right they are slightly darker and warmer.", "The same frame before and after. Only the area inside the lips was changed.")}
-
-    <h3>8.7 A continuous shot from loose endings</h3>
-    <ol>
-      <li>The video model is run from a start frame only, with a prompt that describes the whole move. It finds a natural camera move and a natural ending by itself.</li>
-      <li>The last frame of that run has a good composition, and usually a face that has drifted. The face is corrected on that frame as a still.</li>
-      <li>The corrected frame becomes the end frame of a new run, and then the start frame of the next clip.</li>
-    </ol>
-    ${list([
-      "Every join is a still that can be controlled, so the face is exact where it is largest.",
-      "With only a start frame, Kling 3.0 replaced a face within 0.5–1 s. Fixing the end frame as well roughly doubled how well the face held; it did not lock it.",
-    ])}
-
-    <h3>8.8 Word order is action order</h3>
-    ${list([
-      "Two clauses are performed as two beats. Actions that happen together should be written as one action with both people: “they take each other's hand at the same moment”.",
-      "When a model fails an action, the prompt should be corrected first. Extra stills and masks come second.",
-      "Describe the actual motion (bounces, sways, stamps in puddles). “Dances slowly” freezes the pose.",
-      "Do not name parts of the face in a video prompt. The model acts on what is named.",
-      "The start and end frames should carry the same expression, or the model moves the brows to travel from one to the other.",
-    ])}
+    <p>The working methods found during the project now have a page of their own, with pictures: cropping and pasting back, green paint, one run for several faces, what the likeness score does not see, and more.</p>
+    <p><a class="more" href="/music/methods">Read the eight methods</a> <span aria-hidden="true">→</span></p>
+    ${TOP}
   </div>
 </section>
 
@@ -434,6 +364,7 @@ const BODY = `
       "Video was two to three times cheaper per second on fal than on OpenArt. Stills remained on OpenArt.",
       "Unexplained differences: 14 credits and 34 credits on 23 November, and the Seedream 5.5 park-bench run billed at 37 credits against a quote of 47 on 24 November.",
     ])}
+    ${TOP}
   </div>
 </section>
 
@@ -447,12 +378,13 @@ const BODY = `
       "The warm face on the pier has no likeness score after the Seedream pass.",
     ])}
     <p class="small soft">Product and company names belong to their owners and are used here only to identify the tools. See how the film was made on the <a href="/music">music page</a>.</p>
+    ${TOP}
   </div>
 </section>
   </div>
 </div>`;
 
-const CSS = `
+export const CSS = `
 .models-head{padding:56px 0 32px;border-bottom:0}
 .models-head h1{margin:0 0 14px;font-size:clamp(32px,4.6vw,50px);line-height:1.08;max-width:820px}
 .crumb{margin:0 0 10px;font-size:14px;color:var(--ink-soft)}
@@ -486,9 +418,25 @@ main.models ul,main.models section ol{padding-left:22px;margin:0 0 14px}
 .st-mix{background:#FBE8D8;color:var(--human-deep)}
 .st-no{background:#F1F2F4;color:var(--ink)}
 td .st,p .st{margin-left:0}
-.fig{margin:18px 0 26px}
-.fig img{display:block;width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)}
-.fig figcaption{margin-top:8px;max-width:688px;font-size:14px;color:var(--ink-soft)}
+.tabs{display:inline-flex;gap:4px;margin:20px 0 0;padding:4px;background:var(--band);border:1px solid var(--line);border-radius:999px}
+.tabs a{padding:8px 16px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;color:var(--ink-soft)}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current]{background:#fff;color:var(--machine-deep);box-shadow:0 1px 2px rgba(22,27,34,.12)}
+.toc ul{list-style:none;margin:4px 0 6px;padding:0 0 0 2px;font-size:14px}
+main.models .toc ul li{padding:2px 0}
+.toc-m{position:sticky;top:var(--bar);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.toc-m summary{cursor:pointer;padding:12px 20px;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.toc-m nav{max-height:60vh;overflow:auto;padding:0 20px 14px}
+.toc-m ol{margin:0;padding-left:22px}
+.toc-m ul{list-style:none;margin:2px 0 6px;padding:0;font-size:15px}
+main.models .toc-m li{margin:0;padding:5px 0}
+.toc-m a{text-decoration:none}
+.toc-side{display:none}
+@media (max-width:959px){html{scroll-padding-top:calc(var(--bar) + 60px)}}
+@media (min-width:960px){.toc-m{display:none}.toc-side{display:block}}
+main.models section .wrap>p.top{margin:22px 0 0;font-size:14px}
+.top a{color:var(--ink-soft)}
+.more{font-weight:600}
 .when{font-size:13px;font-weight:400;color:var(--ink-soft);white-space:nowrap}
 .scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
 .scroll table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px;line-height:1.45}
@@ -498,15 +446,21 @@ td .st,p .st{margin-left:0}
 .scroll tbody tr:last-child th,.scroll tbody tr:last-child td{border-bottom:0}
 `;
 
-// shell: { head, nav, footer } cut from page.html, as for /places.
-export function handleModels(shell, csp) {
-  const html = `${shell.head.replace(/<title>.*<\/title>/, `<title>${MODELS.title}</title>`).replace("__HEAD_TAGS__", headTags(MODELS))}${CSS}</style>
+// Closes the phone's "On this page" row once a link in it is followed.
+const TOC_SCRIPT = `<script>
+document.querySelector(".toc-m")?.addEventListener("click", (e) => { if (e.target.closest("a")) e.currentTarget.open = false; });
+</script>`;
+
+// One page of the review. shell: { head, nav, footer } cut from page.html, as for /places.
+export function reviewPage(shell, csp, meta, body, css = "") {
+  const html = `${shell.head.replace(/<title>.*<\/title>/, `<title>${meta.title}</title>`).replace("__HEAD_TAGS__", headTags(meta))}${CSS}${css}</style>
 </head>
 <body>
 ${shell.nav}
-<main id="top" class="models">${BODY}
+<main id="top" class="models">${body}
 </main>
 ${shell.footer}
+${TOC_SCRIPT}
 </body>
 </html>
 `;
@@ -520,3 +474,5 @@ ${shell.footer}
     },
   });
 }
+
+export const handleModels = (shell, csp) => reviewPage(shell, csp, MODELS, BODY);

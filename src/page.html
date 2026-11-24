@@ -31,7 +31,7 @@ a:hover{color:var(--machine-deep)}
 .site nav{display:flex;align-items:center;gap:4px}
 .site nav a{font-size:15px;font-weight:500;text-decoration:none;color:var(--ink);padding:7px 11px;border-radius:8px}
 .site nav a:hover{background:rgba(15,118,110,.08);color:var(--machine-deep)}
-.site nav a[aria-current=page]{color:var(--machine-deep);font-weight:600;background:var(--machine-tint)}
+.site nav a[aria-current]{color:var(--machine-deep);font-weight:600;background:var(--machine-tint)}
 .site nav .sep{width:1px;height:18px;margin:0 8px;background:var(--line)}
 .site .cta{padding:9px 16px;font-size:15px;white-space:nowrap}
 .menu-toggle{position:absolute;opacity:0;width:1px;height:1px}
@@ -52,7 +52,7 @@ a:hover{color:var(--machine-deep)}
   .menu-toggle:checked~nav{display:flex}
   .site nav a{font-size:17px;padding:12px 4px;border-radius:0;border-bottom:1px solid var(--line)}
   .site nav a:last-child{border-bottom:0}
-  .site nav a[aria-current=page]{background:none}
+  .site nav a[aria-current]{background:none}
   .site nav .sep{display:none}
 }
 

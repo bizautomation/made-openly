@@ -47,24 +47,25 @@ describe("GET /music/models, the model fit review", () => {
     }
   });
 
-  it("has a section on working methods, with four pictures that carry alt text and sizes", async () => {
+  it("points to the methods page, which has its own address", async () => {
     const html = await (await call("/music/models")).text();
-    const start = html.indexOf('<section id="methods">');
-    expect(start).toBeGreaterThan(html.indexOf('<section id="prompts">'));
-    const text = html.slice(start, html.indexOf('<section id="billing">'));
-    expect(html).toContain('<li><a href="#methods">Methods that worked</a></li>');
-    for (const name of ["trick-crop", "trick-paint", "trick-strip", "trick-teeth"])
-      expect(text).toContain(`src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w"`);
-    const imgs = text.match(/<img [^>]*>/g);
-    expect(imgs).toHaveLength(4);
-    for (const img of imgs) {
-      expect(img).toMatch(/ width="1600" height="\d+" alt="[^"]{40,}" loading="lazy"/);
-    }
-    expect(text).toContain("“Four people, left to right. Replace person 1 with reference 1");
-    expect(text).toContain("the head must not be bigger than the green area");
-    expect(text).toContain("One run was billed at 47 credits and corrected three faces. Three separate runs of the same kind were billed at 126 credits on 22 November.");
-    expect(text).toContain("<h3>8.5 What the likeness score does not see</h3>");
-    expect(text).toContain("<h3>8.8 Word order is action order</h3>");
+    const text = html.slice(html.indexOf('<section id="methods">'), html.indexOf('<section id="billing">'));
+    expect(text).toContain('<a class="more" href="/music/methods">Read the eight methods</a>');
+    expect(text).not.toContain("<img");
+    expect(html).toContain('<nav class="tabs" aria-label="Model review"><a href="/music/models" aria-current="page">Models and prices</a><a href="/music/methods">Methods</a></nav>');
+  });
+
+  it("links each row of the summary to its detail, and lists the models under their sections", async () => {
+    const html = await (await call("/music/models")).text();
+    const quick = html.slice(html.indexOf('<section id="quick">'), html.indexOf('<section id="stills">'));
+    const hrefs = [...quick.matchAll(/<td><a href="(#[^"]+)">/g)].map((m) => m[1]);
+    expect(hrefs).toHaveLength(15);
+    for (const href of hrefs) expect(html).toContain(` id="${href.slice(1)}"`);
+    const side = html.slice(html.indexOf('<aside class="toc-side">'), html.indexOf("</aside>", html.indexOf('<aside class="toc-side">')));
+    expect(side).toContain('<a href="#m2-1">GPT Image 2.5 Flare</a>');
+    expect(side).toContain('<a href="#m4-9">LTX 2.3</a>');
+    expect(html).toContain('<details class="toc-m"><summary>On this page</summary>');
+    expect(html.match(/<p class="top"><a href="#top">Back to top<\/a><\/p>/g)).toHaveLength(10);
   });
 
   it("redirects a trailing slash to the page", async () => {
