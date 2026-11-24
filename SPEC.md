@@ -273,7 +273,7 @@ No IP address, user agent, visitor identifier or email address is stored anywher
 | POST | `/api/list` | Ask for a place to be named on the public list. |
 | POST | `/api/report` | Report a listed place. |
 | POST | `/api/contact` | Contact form. |
-| GET | `/admin/review?k=...` | One-click approve/reject links from the weekly email (signed). |
+| GET | `/admin/review?k=...` | One-click approve/reject links from the daily review email (signed). |
 | GET | `/places` | Every named place (section 11.3). |
 | GET | `/manage` | Manage a badge with its key (section 8.5). |
 | POST | `/api/manage`, `/api/manage/remove`, `/api/manage/list` | Open, remove or list a badge with its key or code. |
@@ -338,7 +338,7 @@ A place is a token with a bound `host` or a `declared_url`. It counts while eith
 **Removal.**
 - Places that were ever bound or declared are never deleted automatically. A dormant or declared record stays until it is removed.
 - The badge owner removes it completely with the badge key (section 8.5).
-- The site owner removes records by hand: for contact-form requests, and for old records he decides to clear (for example, no sighting for a year). The Monday review email shows "Places with no sighting for 12+ months: n" so he can decide. There is no delete button in the email.
+- The site owner removes records by hand: for contact-form requests, and for old records he decides to clear (for example, no sighting for a year). The Monday review email (the daily email, on Mondays) shows "Places with no sighting for 12+ months: n" so he can decide. There is no delete button in the email.
 - Tokens created more than 30 days ago and never bound or declared are deleted by the Monday check (bot cleanup). Key attempt rows older than a day are deleted then too.
 
 Decided by the owner, 1 Nov 2026.
@@ -461,7 +461,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for
 
 - Above the bars, one row of four numbers: **12** added · **8** active · **1** not seen lately · **3** not verified yet. Each number shows a short hint on hover or tap. Active: "We can see the badge there now." Not seen lately: "We saw it before, but not in the last 30 days." Not verified yet: "Added, but we haven't been able to see it yet. Substack and Medium often hide it from us."
 - Active places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay). A small **Show all added** toggle switches the bars to every added place by label.
-- The named list as a teaser: the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
+- The named list as a teaser, with the note "Updated daily. A place shows here once we have seen the badge there and approved it." (owner, 24 Nov 2026): the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
 - One plain line under the counter: **"This counts places wearing the badge, not visitors. A place is active while we can see the badge there, through its image loading, a click on it, or by finding it on the page. We show every place that was added, including the ones we can't see."**
 
 ---
@@ -561,7 +561,7 @@ Only the public **named list** is moderated. The **counts are never moderated**:
 
 1. Listing is the maker's choice. A badge made through the API without `list` stays `listed='no'`. On the page, the "Name this place on the public list" box is ticked by default and a maker can untick it (owner, 24 Nov 2026). Nothing is named without a sighting and the owner's approval.
 2. A maker asks to be named at Generate (the "Name this place on the public list" box), later with the "Ask to be named" form (`POST /api/list`), or on `/manage` with the badge key. A place not seen yet gets `listed='asked'`; its first sighting moves it to `listed='pending'`. A place already seen goes straight to `pending`. Either way it waits for a first sighting, then for the owner's approval.
-3. Once a week the owner receives one email listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`. `asked` places never appear in the email.
+3. Once a day (02:30 UTC; owner, 24 Nov 2026, was weekly) the owner receives one email, only when there is something to review, listing pending places, each with signed one-click **Approve** and **Reject** links (`/admin/review`). Approve → `yes`. Reject → `no`. `asked` places never appear in the email.
 4. Every listed place on `/places` shows a small **Report** action → `listed='reported'`, hidden until the owner reviews it. Only `yes` places can be reported. The weekly email also lists reported places: **Keep listed** → `yes`, **Remove** → `removed`.
 5. A listed place shows only while it is `active`. A dormant place is hidden and keeps its approval; it shows again at its next sighting. `asked` places never show on `/stats.json`, `/places` or the home page.
 6. A removed place keeps counting; it is only hidden from the list, and cannot ask again.

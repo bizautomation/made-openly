@@ -195,12 +195,37 @@ describe("weekly review email", () => {
     expect(await listed(reported)).toBe("removed");
   });
 
-  it("runs from the Monday cron", async () => {
-    // Not a place yet, so the weekly check leaves it alone and fetches nothing.
+  it("runs from the daily cron", async () => {
     await seed({ listed: "pending", host: null, declared_url: null, created_at: new Date().toISOString() });
+    const ctx = createExecutionContext();
+    // A Tuesday: no line about places unseen for a year.
+    await worker.scheduled(createScheduledController({ cron: "30 2 * * *", scheduledTime: Date.parse("2026-11-24T02:30:00Z") }), env, ctx);
+    await waitOnExecutionContext(ctx);
+    const mail = sent.find((m) => m.subject === "Made Openly: 1 to review");
+    expect(mail).toBeDefined();
+    expect(mail.text).not.toContain("no sighting for 12+ months");
+  });
+
+  it("stays quiet on a weekday with only old unseen places, and says so on Monday", async () => {
+    await seed({ status: "dormant", listed: "no", last_seen: "2020-01-01" });
+    const at = (iso) => async () => {
+      const ctx = createExecutionContext();
+      await worker.scheduled(createScheduledController({ cron: "30 2 * * *", scheduledTime: Date.parse(iso) }), env, ctx);
+      await waitOnExecutionContext(ctx);
+    };
+    const before = sent.length;
+    await at("2026-11-24T02:30:00Z")();
+    expect(sent.length).toBe(before);
+    await at("2026-11-30T02:30:00Z")();
+    expect(sent.at(-1).text).toContain("Places with no sighting for 12+ months: 1");
+  });
+
+  it("the Monday check sends no email of its own", async () => {
+    await seed({ listed: "pending", host: null, declared_url: null, created_at: new Date().toISOString() });
+    const before = sent.length;
     const ctx = createExecutionContext();
     await worker.scheduled(createScheduledController({ cron: "0 2 * * 1" }), env, ctx);
     await waitOnExecutionContext(ctx);
-    expect(sent.some((m) => m.subject === "Made Openly: 1 to review")).toBe(true);
+    expect(sent.length).toBe(before);
   });
 });

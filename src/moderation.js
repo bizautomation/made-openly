@@ -3,7 +3,7 @@ import { ORIGIN, withinLimit } from "./generate.js";
 import { sendMail } from "./mail.js";
 import { placeName } from "./stats.js";
 
-const LINK_DAYS = 14; // a link outlives one weekly email, not two
+const LINK_DAYS = 14; // a link outlives a missed email or two
 const DAY_MS = 86_400_000;
 const TOKEN = /^[A-Za-z0-9]{16,64}$/;
 
@@ -121,10 +121,10 @@ const reviewPage = (status, message) =>
     },
   });
 
-// GET /admin/review?k=...: one-click Approve or Reject from the weekly email.
+// GET /admin/review?k=...: one-click Approve or Reject from the review email.
 export async function handleReview(env, ctx, url, now = new Date()) {
   const payload = await verifyReview(env.ADMIN_SIGNING_KEY, url.searchParams.get("k"), now);
-  if (!payload) return reviewPage(403, "This link is not valid or has expired. The next weekly email has fresh links.");
+  if (!payload) return reviewPage(403, "This link is not valid or has expired. The next review email has fresh links.");
 
   const { from, to } = ACTIONS[payload.a];
   const res = await env.DB.prepare("UPDATE badges SET listed = ? WHERE token = ? AND listed = ?").bind(to, payload.t, from).run();
@@ -136,13 +136,15 @@ export async function handleReview(env, ctx, url, now = new Date()) {
 }
 
 // Monday email: every pending and reported place, with signed links. Nothing is sent if there are none.
-export async function sendReviewEmail(env, now = new Date()) {
+// Daily since 24 Nov 2026 (owner), so a named place shows within a day. The
+// count of places with no sighting for a year rides along on Mondays only.
+export async function sendReviewEmail(env, now = new Date(), { withStale = true } = {}) {
   const { results } = await env.DB.prepare(
     "SELECT token, host, declared_url, label, place_kind, listed FROM badges WHERE listed IN ('pending', 'reported') ORDER BY listed, first_verified",
   ).all();
   // Not seen for a year: the owner decides whether to clear them. No button.
   const yearAgo = new Date(now.getTime() - 365 * DAY_MS).toISOString();
-  const { n: stale } = await env.DB.prepare(
+  const { n: stale } = !withStale ? { n: 0 } : await env.DB.prepare(
     `SELECT COUNT(*) AS n FROM badges
      WHERE (status = 'dormant' AND last_seen < ?) OR (status = 'declared' AND created_at < ?)`,
   )
@@ -167,7 +169,7 @@ export async function sendReviewEmail(env, now = new Date()) {
     }
   }
   if (results.length) lines.push(`Links expire in ${LINK_DAYS} days.`, "");
-  lines.push(`Places with no sighting for 12+ months: ${stale}`);
+  if (withStale) lines.push(`Places with no sighting for 12+ months: ${stale}`);
   await sendMail(env, { subject: `Made Openly: ${results.length} to review`, text: lines.join("\n") });
   return results.length;
 }
