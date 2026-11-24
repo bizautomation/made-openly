@@ -484,7 +484,7 @@ One page, mobile-first, one column on phones. The site header (see Style) stays 
 5. **Counter.** Section 10.
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
-8. **Footer.** One small line, the same on every page: "No cookies. We count places, never visitors." then Privacy, Contact, GitHub and © Biz-Automation Co., Ltd. The full privacy note (section 11.2) lives at `/privacy` (owner, 8 Nov 2026).
+8. **Footer.** The same on every page (layout in Style): the line "No cookies. We count places, never visitors.", the site's own badge, links in three groups (Badge, Explore, About) and © Biz-Automation Co., Ltd. The full privacy note (section 11.2) lives at `/privacy` (owner, 8 Nov 2026).
 
 ### 11.3 The `/places` page (owner, 1 Nov 2026)
 
