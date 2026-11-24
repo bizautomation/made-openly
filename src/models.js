@@ -360,6 +360,19 @@ const BODY = `
     ])}
     ${fig("trick-strip", 1810, "Two rows of four tall panels, each showing a singer with a guitar at a microphone. In the top row the four faces differ from each other. In the bottom row all four show the same face.", "Top: the four clips joined side by side, with four different faces. Bottom: the same frame after one run, with one face. The grey shape in the third column is a passer-by.")}
 
+    <p><b>The same idea on stills (24 November).</b> Replacing a face in several pictures normally costs one paid run for each picture. Three pictures were corrected in one run of Seedream 5.5.</p>
+    <ol>
+      <li>Free and local: the head in each picture was cut out as a 3:4 box, 3.2 times the width of the face, and the three boxes were laid side by side with grey gaps on one 21:9 strip. The position of each box was saved.</li>
+      <li>One paid run: Seedream 5.5, image-to-image, 2K, 21:9, with the strip and the face masters. The prompt asked for the face to be replaced in each panel, for the size, angle, gaze, hair, light and framing of each head to be kept, for the grey gaps to be kept, and for the panels not to be merged.</li>
+      <li>Free and local: each panel was cut back out, aligned to its original crop, and pasted back as a soft oval over the face only.</li>
+    </ol>
+    ${list([
+      "One run was billed at 47 credits and corrected three faces. Three separate runs of the same kind were billed at 126 credits on 22 November. The model kept all three panels and the gaps.",
+      "The likeness score against the three-quarter master rose in all three: 0.165 to 0.350, 0.596 to 0.624 and 0.558 to 0.598. No seam was visible.",
+      "A face that is small in its source (about 100 pixels) comes back soft and still fails. Faces in the strip should be large, over about 200 pixels.",
+      "One set of masters must suit the angle of every panel. The model could merge the panels; it did not here.",
+    ])}
+
     <h3>8.4 One measure for each question</h3>
     ${list([
       "<b>Identity.</b> The ArcFace score against the masters; a pass is 0.55 or higher. Pictures of the same character scored 0.78–0.88 against each other.",
@@ -369,7 +382,17 @@ const BODY = `
       "The ArcFace score is weak on profiles and on faces under about 120 pixels. Those were judged by eye.",
     ])}
 
-    <h3>8.5 Teeth correction, calibrated for each clip</h3>
+    <h3>8.5 What the likeness score does not see</h3>
+    <p>The pass mark is an ArcFace score of 0.55 against the character's masters. The score compares the layout of the eyes, nose and mouth. It does not see hair colour or texture, skin tone, freckles or make-up, and it is weak on faces near profile.</p>
+    ${list([
+      "One picture passed at 0.598 against Mila's three-quarter master, and to the eye it still did not look like her. The likely reasons, on inspection: near-black, sleek hair where hers is mid-brown and wavy; a face lit from behind, so that her eyes and freckles barely showed; a head turned near profile; and smoother, younger skin. The face had been corrected, but only inside its oval; everything around it came from the base picture.",
+      "On 24 November the same prompt and references were run on GPT Image 2.5 Flare and on Seedream 5 Pro. The scores were nearly equal (0.535 and 0.543 on average). By eye the Flare picture was closer to Mila: freckles, brow and nose. In the Seedream picture the face was turned near profile and lit from behind.",
+      "Flare also kept the real place in the background, where Seedream drew a generic one. Seedream gave neater hair and more realistic skin. The runs were billed at 36 and 64 credits.",
+      "Mila's own front master scores only 0.63 against her stills from the film, and the warmest picture of her in the project scored 0.536. A pass means “not a stranger”. It does not mean “reads as her”.",
+      "What followed in practice: light the face from the front or the side; a three-quarter view at most; name the colour and texture of the hair in the prompt; use the cheaper model for first passes; and let a person's eye make the final decision.",
+    ])}
+
+    <h3>8.6 Teeth correction, calibrated for each clip</h3>
     <p>Lip-sync models often draw teeth that glow. The correction is local and free, and it changes only a box around the lips.</p>
     ${list([
       "Each clip is measured in its own light. Fixed settings were wrong from one light to the next.",
@@ -378,7 +401,7 @@ const BODY = `
     ])}
     ${fig("trick-teeth", 447, "Two close pictures of the same open mouth. On the left the teeth glow bright white. On the right they are slightly darker and warmer.", "The same frame before and after. Only the area inside the lips was changed.")}
 
-    <h3>8.6 A continuous shot from loose endings</h3>
+    <h3>8.7 A continuous shot from loose endings</h3>
     <ol>
       <li>The video model is run from a start frame only, with a prompt that describes the whole move. It finds a natural camera move and a natural ending by itself.</li>
       <li>The last frame of that run has a good composition, and usually a face that has drifted. The face is corrected on that frame as a still.</li>
@@ -389,7 +412,7 @@ const BODY = `
       "With only a start frame, Kling 3.0 replaced a face within 0.5–1 s. Fixing the end frame as well roughly doubled how well the face held; it did not lock it.",
     ])}
 
-    <h3>8.7 Word order is action order</h3>
+    <h3>8.8 Word order is action order</h3>
     ${list([
       "Two clauses are performed as two beats. Actions that happen together should be written as one action with both people: “they take each other's hand at the same moment”.",
       "When a model fails an action, the prompt should be corrected first. Extra stills and masks come second.",

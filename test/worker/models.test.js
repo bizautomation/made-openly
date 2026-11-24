@@ -62,6 +62,9 @@ describe("GET /music/models, the model fit review", () => {
     }
     expect(text).toContain("“Four people, left to right. Replace person 1 with reference 1");
     expect(text).toContain("the head must not be bigger than the green area");
+    expect(text).toContain("One run was billed at 47 credits and corrected three faces. Three separate runs of the same kind were billed at 126 credits on 22 November.");
+    expect(text).toContain("<h3>8.5 What the likeness score does not see</h3>");
+    expect(text).toContain("<h3>8.8 Word order is action order</h3>");
   });
 
   it("redirects a trailing slash to the page", async () => {
