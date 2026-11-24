@@ -118,6 +118,9 @@ summary:focus-visible{outline:2px solid var(--machine);outline-offset:4px;border
 details p{margin:10px 44px 0 0;color:var(--ink-soft)}
 footer{padding:20px 0 28px;font-size:13px;color:var(--ink-soft)}
 footer p{margin:0}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.foot .own{flex:none;line-height:0}
+.foot p{flex:1 1 300px}
 .nowrap{white-space:nowrap}
 .hero-badges{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 28px}
 .hero-badges img{display:block}
@@ -355,6 +358,7 @@ footer p{margin:0}
 
     <div class="named-head"><h3>Places that asked to be named</h3><a id="see-all" href="/places">See all places →</a></div>
     <ul class="listed" id="listed"><li class="soft">None yet.</li></ul>
+    <p class="soft small" id="listed-note">Updated daily. A place shows here once we have seen the badge there and approved it.</p>
     <details id="ask-named">
       <summary>Wearing a badge? Ask to be named</summary>
       <form id="list-form" novalidate>
@@ -436,7 +440,8 @@ footer p{margin:0}
 </main>
 
 <footer id="privacy">
-  <div class="wrap">
+  <div class="wrap foot">
+    <a class="own" href="https://madeopenly.com/?t=20f984ff242f47788923f473d107d2f6" title="Made Openly: Mostly AI"><img src="https://madeopenly.com/b/20f984ff242f47788923f473d107d2f6.svg?l=mostly-ai&amp;s=light&amp;z=small&amp;v=robot&amp;m=robot" width="88" height="31" alt="Made Openly: Mostly AI"></a>
     <p>No cookies. We count places, never visitors. <a href="/privacy">Privacy</a> · <a href="/#contact">Contact</a> · <a href="https://github.com/bizautomation/made-openly">GitHub</a> · <span class="nowrap">© Biz-Automation Co., Ltd.</span></p>
   </div>
 </footer>

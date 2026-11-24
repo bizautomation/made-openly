@@ -59,7 +59,8 @@ const CSP = [
   "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
   "frame-src https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  // madeopenly.com named outright so the footer badge also loads on the review host.
+  "img-src 'self' data: https://madeopenly.com",
   "font-src 'self'",
   "connect-src 'self' https://cloudflareinsights.com",
   "base-uri 'none'",
@@ -226,6 +227,7 @@ ${SHELL.footer}
 }
 
 const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
+const REVIEW_CRON = "30 2 * * *"; // daily review email, after the Monday check
 
 export default {
   async fetch(request, env, ctx) {
@@ -250,8 +252,13 @@ export default {
       if (summary.checked) console.log("new check", JSON.stringify(summary)); // counts only
       return;
     }
+    if (controller.cron === REVIEW_CRON) {
+      const now = new Date(controller.scheduledTime || Date.now());
+      const toReview = await sendReviewEmail(env, now, { withStale: now.getUTCDay() === 1 });
+      if (toReview) console.log("review email", JSON.stringify({ to_review: toReview })); // counts only
+      return;
+    }
     const summary = await runWeeklyCheck(env);
-    summary.to_review = await sendReviewEmail(env);
     console.log("weekly check", JSON.stringify(summary)); // counts only
   },
 };

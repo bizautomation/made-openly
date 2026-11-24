@@ -11,6 +11,8 @@ describe("privacy (SPEC.md 11.2)", () => {
     expect(footers[0]).toContain("No cookies. We count places, never visitors.");
     expect(footers[0]).toContain('<a href="/privacy">Privacy</a>');
     expect(footers[0].match(/<p>/g)).toHaveLength(1);
+    // The site wears its own badge, registered for https://madeopenly.com/ like any other place.
+    expect(footers[0]).toMatch(/<a class="own" href="https:\/\/madeopenly\.com\/\?t=([0-9a-f]{32})" title="Made Openly: Mostly AI"><img src="https:\/\/madeopenly\.com\/b\/\1\.svg\?l=mostly-ai&amp;/);
   });
 
   it("/privacy holds the full note", async () => {
