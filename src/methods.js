@@ -2,11 +2,7 @@
 // Human" music video. The second page of the model review; /music/models is
 // the first. The pictures come from the music Worker under /art/tricks/.
 import { METHODS } from "./share.js";
-import { DISCLAIMER, TOP, list, reviewPage, tabs, toc } from "./models.js";
-
-// A picture in two widths. It opens at full size when pressed.
-const fig = (name, h, alt, caption) =>
-  `<figure class="fig"><a href="/art/tricks/${name}-1600.jpg"><img src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w" sizes="(min-width: 960px) 820px, 100vw" width="1600" height="${h}" alt="${alt}" loading="lazy" decoding="async"></a><figcaption>${caption} <span class="soft">Press the picture to see it larger.</span></figcaption></figure>`;
+import { DISCLAIMER, TOP, fig, list, reviewPage, tabs, toc } from "./models.js";
 
 const TOC = toc([
   ["#crop", "Crop, change, paste back"],
@@ -180,11 +176,4 @@ ${TOC.row}
   </div>
 </div>`;
 
-const CSS = `
-.fig{margin:18px 0 26px}
-.fig a{display:block}
-.fig img{display:block;width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)}
-.fig figcaption{margin-top:8px;max-width:688px;font-size:14px;color:var(--ink-soft)}
-`;
-
-export const handleMethods = (shell, csp) => reviewPage(shell, csp, METHODS, BODY, CSS);
+export const handleMethods = (shell, csp) => reviewPage(shell, csp, METHODS, BODY);
