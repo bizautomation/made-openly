@@ -234,6 +234,12 @@ ${SHELL.footer}
   });
 }
 
+// robots.txt for madeopenly.com. The form addresses under /api/ only take
+// POST; Google found them in the page scripts and kept trying them with GET
+// (Search Console, 1-2 Nov 2026). Cloudflare's managed robots.txt, if it is
+// ever switched on, is put in front of this file, not instead of it.
+const ROBOTS = "User-agent: *\nDisallow: /api/\n\nSitemap: https://madeopenly.com/sitemap.xml\n";
+
 const NEW_CHECK_CRON = "*/15 * * * *"; // must match wrangler.toml
 const REVIEW_CRON = "30 2 * * *"; // daily review email, after the Monday check
 
@@ -242,8 +248,10 @@ export default {
     const url = new URL(request.url);
     if ((url.protocol === "http:" && url.hostname !== "localhost") || url.hostname in CANONICAL_HOST) return canonical(url, request.method);
     const review = REVIEW_HOSTS.includes(url.hostname);
-    if (review && url.pathname === "/robots.txt")
-      return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX, "Strict-Transport-Security": HSTS } });
+    if (url.pathname === "/robots.txt")
+      return review
+        ? new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain", "X-Robots-Tag": NO_INDEX, "Strict-Transport-Security": HSTS } })
+        : new Response(ROBOTS, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=86400", "Strict-Transport-Security": HSTS } });
     // Copy so the headers are writable (cached and JSON responses are immutable).
     const original = await route(request, env, ctx, url);
     const res = new Response(original.body, original);

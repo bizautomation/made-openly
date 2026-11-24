@@ -510,7 +510,7 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 - **Icons:** square, drawn from the robot mascot by `scripts/render-icons.js`: `/favicon.svg`, `/favicon.ico` (32 and 48 px), `/apple-touch-icon.png` (180 px) and `/icon-512.png`, on every page. Google shows only a square favicon in results. (Owner, 1 Nov 2026; before this the icon was the 88 x 31 badge.)
 - **Addresses:** `/places/` and `/manage/` redirect (301) to the address without the slash, keeping the query. A missing page asked for by a browser gets a small `noindex` page with a link home; anything else keeps the plain-text 404.
 - **`/sitemap.xml`:** `/`, `/places`, `/music`, `/music/models`, `/music/methods` and `/privacy` only, as `application/xml`. Never `/manage`, `/stats.json`, badge or API addresses.
-- **`/robots.txt`:** Cloudflare's managed file (content signals), set on the zone. The Worker serves none, because a Worker robots.txt replaces the managed one (seen live 1 Nov 2026). The sitemap is submitted in Search Console instead.
+- **`/robots.txt`:** served by the Worker (owner, 24 Nov 2026): `User-agent: *`, `Disallow: /api/`, and the sitemap address. The form addresses under `/api/` take only POST; Google read them out of the page scripts and kept trying them with GET (Search Console, 1–2 Nov 2026). Until 24 Nov the Worker served none, because on 1 Nov a Worker file appeared to replace Cloudflare's managed one. Cloudflare's documentation (updated 2 Nov 2026) says the managed content is put in front of a site's own file, and only when Bot Preference Sync blocks something; on 24 Nov the live file held only Cloudflare's default comment block, with no rules. The review host keeps `Disallow: /`.
 - `/manage` has no share tags and keeps `noindex`.
 
 ### 11.5 The `/music` page (owner, 7 Nov 2026; moved 9 Nov 2026)
@@ -531,7 +531,7 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 
 The model fit review: which AI model was used for which task on the "Sing Like a Human" music video, what each cost and where each fell short. Source: Muninn artifact `2d1c4c66`, rewritten in formal language with every number, price and date kept.
 
-- Lives in this Worker (`src/models.js`), not the music Worker. Listed in the sitemap. No robots.txt change: the zone's managed file already allows it.
+- Lives in this Worker (`src/models.js`), not the music Worker. Listed in the sitemap. robots.txt allows it.
 - A disclaimer sits above the first section: one person's experience on one project (7–24 November 2026), not benchmarks, check current prices before running anything.
 - Assessments in plain words: Recommended, Mixed results, Not recommended.
 - No real name of the owner, no internal take codes or job IDs, nothing from the character bible. Never linked from crayonraven.com.
