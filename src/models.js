@@ -45,6 +45,10 @@ const UPSCALERS = table(
   ],
 );
 
+// A picture in two widths. It opens at full size when pressed.
+export const fig = (name, h, alt, caption) =>
+  `<figure class="fig"><a href="/art/tricks/${name}-1600.jpg"><img src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w" sizes="(min-width: 960px) 820px, 100vw" width="1600" height="${h}" alt="${alt}" loading="lazy" decoding="async"></a><figcaption>${caption} <span class="soft">Press the picture to see it larger.</span></figcaption></figure>`;
+
 // The two pages of the review share one strip of tabs under the heading.
 export const tabs = (here) =>
   `<nav class="tabs" aria-label="Model review">${[
@@ -299,6 +303,7 @@ ${TOC.row}
 
     <h3 id="m4-9">4.9 LTX 2.3, audio-to-video ${N}</h3>
     ${list(["It was the only model that made light events inside the scene from a prompt, but only about 6 of 14 runs were usable. The failures were frozen mouths, a cut to strangers, and a floating light bulb."])}
+    ${fig("ltx-light", 902, "Four frames of a man rapping into a hand-held microphone. In the first two he is in near darkness. In the third a cool light begins to rise behind him. In the fourth the whole frame is flooded with white-blue light and haze.", "Four frames from one two-second take in the first cut of the film (7 November 2026). The flood of light was asked for in the prompt and made by the model inside the scene. The character's face was remade later, so this take is not in the final cut.")}
     ${TOP}
   </div>
 </section>
@@ -437,6 +442,10 @@ main.models .toc-m li{margin:0;padding:5px 0}
 main.models section .wrap>p.top{margin:22px 0 0;font-size:14px}
 .top a{color:var(--ink-soft)}
 .more{font-weight:600}
+.fig{margin:18px 0 26px}
+.fig a{display:block}
+.fig img{display:block;width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)}
+.fig figcaption{margin-top:8px;max-width:688px;font-size:14px;color:var(--ink-soft)}
 .when{font-size:13px;font-weight:400;color:var(--ink-soft);white-space:nowrap}
 .scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
 .scroll table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px;line-height:1.45}

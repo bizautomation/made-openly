@@ -52,6 +52,12 @@ describe("GET /music/models, the model fit review", () => {
     const text = html.slice(html.indexOf('<section id="methods">'), html.indexOf('<section id="billing">'));
     expect(text).toContain('<a class="more" href="/music/methods">Read the eight methods</a>');
     expect(text).not.toContain("<img");
+    // One picture on this page: the light flood take under LTX 2.3.
+    const imgs = html.slice(html.indexOf("<main"), html.indexOf("</main>")).match(/<img [^>]*>/g);
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]).toContain('src="/art/tricks/ltx-light-800.jpg"');
+    expect(imgs[0]).toMatch(/ width="1600" height="902" alt="[^"]{40,}" loading="lazy"/);
+    expect(html.indexOf("ltx-light-800.jpg")).toBeGreaterThan(html.indexOf('id="m4-9"'));
     expect(html).toContain('<nav class="tabs" aria-label="Model review"><a href="/music/models" aria-current="page">Models and prices</a><a href="/music/methods">Methods</a></nav>');
   });
 
