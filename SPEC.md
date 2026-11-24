@@ -461,7 +461,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for
 
 - Above the bars, one row of four numbers: **12** added · **8** active · **1** not seen lately · **3** not verified yet. Each number shows a short hint on hover or tap. Active: "We can see the badge there now." Not seen lately: "We saw it before, but not in the last 30 days." Not verified yet: "Added, but we haven't been able to see it yet. Substack and Medium often hide it from us."
 - Active places per badge label, as bars in the label colours (Mostly AI teal, Human + AI mid-teal `#5FA8A0`, Human only clay). A small **Show all added** toggle switches the bars to every added place by label.
-- The named list as a teaser, with the note "Updated daily. A place shows here once we have seen the badge there and approved it." (owner, 24 Nov 2026): the newest six places as cards in their label colour, each linking to the place, and a **See all N →** link to `/places`.
+- The named list as a teaser, with the note "Updated daily. A place shows here once we have seen the badge there and approved it." (owner, 24 Nov 2026): the newest six places as cards (three across on a wide screen, two, then one), each a single link to the place showing its kind, a quiet path line, the name in bold and its label with a bar in the label colour, and a **See all N →** link to `/places`.
 - One plain line under the counter: **"This counts places wearing the badge, not visitors. A place is active while we can see the badge there, through its image loading, a click on it, or by finding it on the page. We show every place that was added, including the ones we can't see."**
 
 ---
