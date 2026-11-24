@@ -535,6 +535,7 @@ The model fit review: which AI model was used for which task on the "Sing Like a
 - A disclaimer sits above the first section: one person's experience on one project (7–24 November 2026), not benchmarks, check current prices before running anything.
 - Assessments in plain words: Recommended, Mixed results, Not recommended.
 - No real name of the owner, no internal take codes or job IDs, nothing from the character bible. Never linked from crayonraven.com.
+- **Methods (section 8, owner, 24 Nov 2026).** "Methods that worked": crop, change and paste back; green paint; one run for several faces mapped from left to right; one measure for each question; teeth correction; the continuous shot from loose endings; word order as action order. A point that rests on observation only says so. Four pictures (crop, green, strip, teeth) come from the music Worker under `/art/tricks/`, in 800 and 1600 px widths, each with alt text and a caption. The pictures carry no text, codes or labels.
 - **Menu.** The site menu is in two groups with a thin divider: on-page links (Labels, Count, FAQ), then pages (Places, Music, Model review). Get a badge is the button at the end of the header. The page carries a "Music / Model review" trail back to `/music`.
 
 ### 11.1 FAQ (seed questions; write plain, short answers)

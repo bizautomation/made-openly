@@ -45,6 +45,9 @@ const UPSCALERS = table(
   ],
 );
 
+const fig = (name, h, alt, caption) =>
+  `<figure class="fig"><img src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w" sizes="(min-width: 960px) 820px, 100vw" width="1600" height="${h}" alt="${alt}" loading="lazy" decoding="async"><figcaption>${caption}</figcaption></figure>`;
+
 const BODY = `
 <section class="models-head">
   <div class="wrap">
@@ -71,6 +74,7 @@ const BODY = `
       <li><a href="#upscalers">Upscalers</a></li>
       <li><a href="#local">Local tools</a></li>
       <li><a href="#prompts">Prompt rules</a></li>
+      <li><a href="#methods">Methods that worked</a></li>
       <li><a href="#billing">Prices and billing</a></li>
       <li><a href="#open">Open questions</a></li>
     </ol></nav>
@@ -309,9 +313,92 @@ const BODY = `
   </div>
 </section>
 
+<section id="methods">
+  <div class="wrap">
+    <h2>8. Methods that worked</h2>
+    <p>These are working methods, not models. Each one was found during the project and used in the film. Where a point rests on observation only, the text says so.</p>
+
+    <h3>8.1 Crop, change, paste back</h3>
+    <p>When a face is small in the frame, the model is given too few pixels to work on, and an edit of the whole picture changes things that should stay. The area around the head is cut out, the model works on that crop alone, and the result is pasted back with a soft edge.</p>
+    ${list([
+      "The rest of the picture stays identical, pixel for pixel.",
+      "The face is larger in the crop, so the model has more to work with. A crop of about three times the width of the face, enlarged to 1024 pixels, worked well.",
+      "The result is aligned to the original before it is pasted, because the model may shift the head by a few pixels.",
+      "On the market singer, the likeness score of one still rose from 0.17 to 0.66 in a single pass on Seedream 5.5.",
+    ])}
+    ${fig("trick-crop", 420, "Three pictures in a row. A wide night-market scene with a white square drawn around the singer's head; the cut-out square before the change; the same square after the change, with a different face.", "Left: the still, with the area that was cut out. Centre: the crop as it was. Right: the crop after the change, before it was pasted back.")}
+
+    <h3>8.2 Green paint for a stronger change</h3>
+    <p>A plain request to replace a face often changes almost nothing: the model protects a face it can see. Painting the face, or the whole head, in flat green removes what the model would protect, and it then draws the head from the reference.</p>
+    ${list([
+      "On Ayaz's profile, a plain face correction on Seedream 5 Pro changed almost nothing. With the whole head painted green, the same model drew the new face.",
+      "On Mila's most difficult still, the green method reached 0.443 against 0.375 for a plain edit and 0.259 for the original.",
+      "<b>The green shape sets the size of the head.</b> When the green was painted loosely, the model filled the whole patch and the head came out too large. Keeping the green close to the real outline of the head avoided this.",
+      "With a loose patch, the prompt should ask for the face and the background inside the green area, not for a head that fills it. This wording is an observation from the work; it was not tested side by side.",
+      "Paint only the person, never the background, when the background must stay.",
+    ])}
+    ${fig("trick-green", 529, "Three pictures in a row of a man in profile on a stage. The original; the same picture with his whole head painted flat green; the result, with a new head of the same size drawn in the green area.", "Left: the original crop. Centre: the head painted green, close to its real outline. Right: the head drawn by the model from the face reference.")}
+
+    <h3>8.3 One run for several faces, mapped from left to right</h3>
+    <p>MiniMax H3 Max Recast on fal replaces people in a video. It accepts one to four reference pictures, one for each person, and maps them to the people in the picture from left to right. The market singer appeared in four clips, with a different face in each. A first run on one whole clip failed: her face was 60–88 pixels tall and the model kept the old one.</p>
+    <ol>
+      <li>Her head was tracked in each clip, and a tall column was cut around it.</li>
+      <li>The four columns were joined side by side into one video. Her face was now about 216 pixels tall in every column.</li>
+      <li>Four references were supplied in the same order from left to right, each chosen for the angle of the head in its column: three-quarter, front, three-quarter mirrored, front.</li>
+      <li>The prompt read: “Four people, left to right. Replace person 1 with reference 1, person 2 with reference 2, person 3 with reference 3, person 4 with reference 4.”</li>
+      <li>The result was cut back into columns, and each was pasted into its own clip with a soft oval around the head.</li>
+    </ol>
+    ${list([
+      "The mapping from left to right held, although all four columns show the same person.",
+      "One run changed four clips. The list price was about $1.56 at 1080p; the amount charged was not confirmed.",
+      "The median likeness score rose from about 0 to 0.15–0.33. The faces are below the size at which the score is reliable, so the result was also judged by eye.",
+      "The references must have different addresses. Supplying the same picture twice was refused; the same file uploaded a second time was accepted.",
+    ])}
+    ${fig("trick-strip", 1810, "Two rows of four tall panels, each showing a singer with a guitar at a microphone. In the top row the four faces differ from each other. In the bottom row all four show the same face.", "Top: the four clips joined side by side, with four different faces. Bottom: the same frame after one run, with one face. The grey shape in the third column is a passer-by.")}
+
+    <h3>8.4 One measure for each question</h3>
+    ${list([
+      "<b>Identity.</b> The ArcFace score against the masters; a pass is 0.55 or higher. Pictures of the same character scored 0.78–0.88 against each other.",
+      "<b>Proportions and position.</b> Apple Vision landmarks. Jaw and chin ratios could not tell two different faces apart, so they were never used for identity.",
+      "<b>Head size after an edit.</b> The face box before and after. A change of more than 5 % was flagged, because edit models often draw the head larger.",
+      "<b>Comparison by eye.</b> Only on a sheet where every face is drawn at the same scale.",
+      "The ArcFace score is weak on profiles and on faces under about 120 pixels. Those were judged by eye.",
+    ])}
+
+    <h3>8.5 Teeth correction, calibrated for each clip</h3>
+    <p>Lip-sync models often draw teeth that glow. The correction is local and free, and it changes only a box around the lips.</p>
+    ${list([
+      "Each clip is measured in its own light. Fixed settings were wrong from one light to the next.",
+      "Glare is brought halfway down towards the lit skin, and colour is moved halfway towards the white of the eye. A full correction met its targets but looked beige and grey.",
+      "It cannot correct the shape of teeth, or flicker between frames. Those are hidden in the edit.",
+    ])}
+    ${fig("trick-teeth", 447, "Two close pictures of the same open mouth. On the left the teeth glow bright white. On the right they are slightly darker and warmer.", "The same frame before and after. Only the area inside the lips was changed.")}
+
+    <h3>8.6 A continuous shot from loose endings</h3>
+    <ol>
+      <li>The video model is run from a start frame only, with a prompt that describes the whole move. It finds a natural camera move and a natural ending by itself.</li>
+      <li>The last frame of that run has a good composition, and usually a face that has drifted. The face is corrected on that frame as a still.</li>
+      <li>The corrected frame becomes the end frame of a new run, and then the start frame of the next clip.</li>
+    </ol>
+    ${list([
+      "Every join is a still that can be controlled, so the face is exact where it is largest.",
+      "With only a start frame, Kling 3.0 replaced a face within 0.5–1 s. Fixing the end frame as well roughly doubled how well the face held; it did not lock it.",
+    ])}
+
+    <h3>8.7 Word order is action order</h3>
+    ${list([
+      "Two clauses are performed as two beats. Actions that happen together should be written as one action with both people: “they take each other's hand at the same moment”.",
+      "When a model fails an action, the prompt should be corrected first. Extra stills and masks come second.",
+      "Describe the actual motion (bounces, sways, stamps in puddles). “Dances slowly” freezes the pose.",
+      "Do not name parts of the face in a video prompt. The model acts on what is named.",
+      "The start and end frames should carry the same expression, or the model moves the brows to travel from one to the other.",
+    ])}
+  </div>
+</section>
+
 <section id="billing">
   <div class="wrap">
-    <h2>8. Prices and billing: points to watch</h2>
+    <h2>9. Prices and billing: points to watch</h2>
     ${list([
       "Quotes on OpenArt depend on the references, the resolution and the number of images. The exact configuration should be quoted again before every run.",
       "Seedream 5.5 adds about 5 credits per reference. Seedream 5 Pro adds about 2 credits per additional reference.",
@@ -325,12 +412,13 @@ const BODY = `
 
 <section id="open">
   <div class="wrap">
-    <h2>9. Open questions</h2>
+    <h2>10. Open questions</h2>
     ${list([
       "Seedream 5.5 as the photographic look finisher (37 credits against 60): not tested.",
       "The charge per reference on Seedream 4.5 and Seedream 5 Lite: not checked.",
       "Whether Seedream uses a third reference when OpenArt lists only two: not established.",
       "The warm face on the pier has no likeness score after the Seedream pass.",
+      "Whether a loose green patch gives a normal head when the prompt asks for the face and the background: not tested side by side.",
     ])}
     <p class="small soft">Product and company names belong to their owners and are used here only to identify the tools. See how the film was made on the <a href="/music">music page</a>.</p>
   </div>
@@ -372,6 +460,9 @@ main.models ul,main.models section ol{padding-left:22px;margin:0 0 14px}
 .st-mix{background:#FBE8D8;color:var(--human-deep)}
 .st-no{background:#F1F2F4;color:var(--ink)}
 td .st,p .st{margin-left:0}
+.fig{margin:18px 0 26px}
+.fig img{display:block;width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)}
+.fig figcaption{margin-top:8px;max-width:688px;font-size:14px;color:var(--ink-soft)}
 .when{font-size:13px;font-weight:400;color:var(--ink-soft);white-space:nowrap}
 .scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
 .scroll table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px;line-height:1.45}
