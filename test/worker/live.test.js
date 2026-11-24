@@ -185,7 +185,10 @@ describe("PNG badge and load costs", () => {
     expect(await days(token)).toBe(0);
   });
 
-  it("still draws the badge over the rate limit, and records nothing", async () => {
+  // The limiter counts per clock minute. If the 300 loads straddle the turn of a
+  // minute, the last one is under the limit and the place binds; a retry then
+  // runs inside one minute. Seen on CI, 23 and 24 Nov 2026.
+  it("still draws the badge over the rate limit, and records nothing", { retry: 2 }, async () => {
     const token = await seed();
     const hit = (ref) => call(`/b/${token}.svg`, { headers: { Referer: ref, "CF-Connecting-IP": "198.51.100.77" } });
     for (let i = 0; i < 300; i++) await hit("https://noise.example/");
