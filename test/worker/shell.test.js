@@ -37,6 +37,16 @@ describe("the site header and footer", () => {
   it("lists every page in the footer", async () => {
     const html = await (await call("/privacy")).text();
     const footer = html.slice(html.indexOf('<footer id="privacy">'), html.indexOf("</footer>"));
-    for (const href of ["/#labels", "/#get", "/manage", "/#count", "/places", "/music", "/music/models", "/#faq", "/privacy", "/#contact"]) expect(footer).toContain(`<a href="${href}">`);
+    for (const href of ["/#labels", "/#get", "/manage", "/#count", "/places", "/music", "/music/models", "/#faq", "/privacy", "/#contact", "https://github.com/bizautomation/made-openly", "https://crayonraven.com"]) expect(footer).toContain(`<a href="${href}">`);
+  });
+
+  it("shows the Crayon Raven logo beside the site's own badge, linked to the band's page", async () => {
+    for (const path of ["/", "/places", "/privacy", "/music/models", "/music/methods"]) {
+      const html = await (await call(path)).text();
+      const footer = html.slice(html.indexOf('<footer id="privacy">'), html.indexOf("</footer>"));
+      const logos = footer.slice(footer.indexOf('<div class="foot-logos">'), footer.indexOf("</div>", footer.indexOf('<div class="foot-logos">')));
+      expect(logos).toContain('<a class="own"');
+      expect(logos).toContain('<a class="cr" href="https://crayonraven.com" title="Crayon Raven, the band behind the music"><img src="/crayon-raven-logo.png" width="62" height="44" alt="Crayon Raven"');
+    }
   });
 });
