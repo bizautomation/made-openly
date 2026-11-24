@@ -141,9 +141,9 @@ describe("POST /api/send-key", () => {
 });
 
 describe("pages", () => {
-  it("the picker has the list checkbox, unticked, and the key box with four buttons", async () => {
+  it("the picker has the list checkbox, ticked, and the key box with four buttons", async () => {
     const html = await (await call("/")).text();
-    expect(html).toMatch(/<input type="checkbox" name="list" id="list-me">\s*Name this place on the public list/);
+    expect(html).toMatch(/<input type="checkbox" name="list" id="list-me" checked>\s*Name this place on the public list/);
     expect(html).toContain("Your place appears on the list after the badge is found there and we approve it.");
     // One main button; the key and the extra snippets wait behind two closed rows.
     const result = html.slice(html.indexOf('id="result"'), html.indexOf('id="download"'));
