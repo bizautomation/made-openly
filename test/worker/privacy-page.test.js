@@ -6,7 +6,7 @@ const footerOf = (html) => html.slice(html.indexOf('<footer id="privacy"'), html
 describe("privacy (SPEC.md 11.2)", () => {
   it("every page ends with the same one-line footer", async () => {
     const footers = [];
-    for (const path of ["/", "/places", "/music", "/manage", "/privacy"]) footers.push(footerOf(await (await call(path)).text()));
+    for (const path of ["/", "/places", "/music", "/music/models", "/manage", "/privacy"]) footers.push(footerOf(await (await call(path)).text()));
     expect(new Set(footers).size).toBe(1);
     expect(footers[0]).toContain("No cookies. We count places, never visitors.");
     expect(footers[0]).toContain('<a href="/privacy">Privacy</a>');

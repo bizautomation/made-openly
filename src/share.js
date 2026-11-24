@@ -36,6 +36,13 @@ export const PLACES = {
 // /music is served by the private music Worker; only its address is listed here.
 export const MUSIC = { url: `${ORIGIN}/music` };
 
+export const MODELS = {
+  url: `${ORIGIN}/music/models`,
+  title: "Model fit review: which AI model was used for which task | Made Openly",
+  description:
+    "Which AI image, video and lip-sync models were used for which task on one music video, what each cost and where each fell short. One project's findings, 7 to 24 November 2026; not benchmarks.",
+};
+
 export const PRIVACY = {
   url: `${ORIGIN}/privacy`,
   title: "Privacy: Made Openly",
@@ -43,7 +50,7 @@ export const PRIVACY = {
 };
 
 // The pages search engines may list. Not /manage, /stats.json or any badge or API address.
-const SITEMAP_PAGES = [HOME, PLACES, MUSIC, PRIVACY];
+const SITEMAP_PAGES = [HOME, PLACES, MUSIC, MODELS, PRIVACY];
 
 const attr = (s) => s.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 
