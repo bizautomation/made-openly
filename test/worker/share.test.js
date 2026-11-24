@@ -97,12 +97,6 @@ describe("GET /sitemap.xml", () => {
   });
 });
 
-describe("GET /robots.txt", () => {
-  it("is left to Cloudflare's managed file on madeopenly.com", async () => {
-    expect((await call("/robots.txt")).status).toBe(404);
-  });
-});
-
 describe("site icons", () => {
   it("are square and linked from every page", async () => {
     for (const path of ["/", "/places", "/manage", "/privacy"]) {

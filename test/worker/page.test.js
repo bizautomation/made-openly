@@ -123,6 +123,13 @@ describe("review host madeopenly.bizat.co", () => {
     expect(await (await onReview("/robots.txt")).text()).toBe("User-agent: *\nDisallow: /\n");
   });
 
+  it("keeps crawlers off the form addresses on madeopenly.com, and names the sitemap", async () => {
+    const res = await call("/robots.txt");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
+    expect(await res.text()).toBe("User-agent: *\nDisallow: /api/\n\nSitemap: https://madeopenly.com/sitemap.xml\n");
+  });
+
   it("leaves madeopenly.com indexable", async () => {
     expect((await call("/")).headers.get("X-Robots-Tag")).toBeNull();
   });
