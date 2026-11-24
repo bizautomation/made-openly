@@ -711,7 +711,7 @@ for (const b of document.querySelectorAll("#stat-row [data-hint]")) {
 }
 async function loadStats() {
   let s;
-  try { s = await (await fetch("/stats.json")).json(); } catch { return; }
+  try { s = await (await fetch("/stats.json", { cache: "no-cache" })).json(); } catch { return; }
   stats = s;
   $("n-added").textContent = s.added_total;
   $("n-active").textContent = s.total_verified;

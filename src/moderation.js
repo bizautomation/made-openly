@@ -1,7 +1,7 @@
 // The public named list (SPEC.md 12). Only the list is moderated; counts never are.
 import { ORIGIN, withinLimit } from "./generate.js";
 import { sendMail } from "./mail.js";
-import { placeName } from "./stats.js";
+import { placeName, statsCacheKey } from "./stats.js";
 
 const LINK_DAYS = 14; // a link outlives a missed email or two
 const DAY_MS = 86_400_000;
@@ -57,7 +57,7 @@ async function readJson(request) {
 }
 
 // The cached /stats.json would show a reported place for up to an hour; drop it.
-export const purgeStats = (env) => (env.STATS_CACHE === "off" ? null : caches.default.delete(new Request(`${ORIGIN}/stats.json`)));
+export const purgeStats = (env) => (env.STATS_CACHE === "off" ? null : caches.default.delete(statsCacheKey(ORIGIN)));
 
 // POST /api/list {token}: a place asks to be named. A place that has been
 // seen waits for the owner's approval; one not seen yet waits for its first
