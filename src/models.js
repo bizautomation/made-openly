@@ -335,12 +335,13 @@ const BODY = `
       "<b>The result is only as close as its reference.</b> That first head came out too young, because the side reference was too young. It was replaced two days later with a head drawn from a better reference.",
       "On Mila's most difficult still, the green method reached 0.443 against 0.375 for a plain edit and 0.259 for the original.",
       "In the album, faces turned more than about 25 degrees were corrected this way on GPT Image 2.5 Flare.",
-      "<b>The taxi driver was recast this way</b> (shown below). His head and the phone on the dashboard were painted green, and the model filled them from two face masters. Only the green areas were taken from the result, so the size of the head, the arm and the rest of the frame stayed as they were.",
-      "<b>The green shape sets the size of the head.</b> When the green was painted loosely, the model filled the whole patch and the head came out too large. Keeping the green close to the real outline of the head avoided this.",
-      "With a loose patch, the prompt should ask for the face and the background inside the green area, not for a head that fills it. This wording is an observation from the work; it was not tested side by side.",
+      "<b>The taxi driver was recast this way</b> (shown below), on Nano Banana Pro. His head and the phone on the dashboard were painted green. The prompt named each green area in turn: the first to be filled with the glass behind it, the second with the new driver at “the same head size, position and angle as the original driver”.",
+      "<b>The green shape sets the size of the head.</b> When the green was painted loosely, the model filled the whole patch and the head came out too large. Keeping the green close to the real outline of the head helped.",
+      "The prompt should also say so. The wording that held was: “paint his head so that it fits entirely inside this green shape … the head must not be bigger than the green area”. A prompt that asks the model to fill the area invites a larger head.",
+      "Where background had to be repainted as well, a second colour was used: green for the heads, and magenta for areas that are “background only, never part of a head, hair or body”.",
       "Paint only the person, never the background, when the background must stay.",
     ])}
-    ${fig("trick-recast", 447, "Two pictures of a man driving a turquoise taxi at night in the rain, seen through the side window. On the left an older man with a phone mounted on the dashboard. On the right a different man with swept-back hair, and no phone; the taxi, the hands on the wheel and the street are the same.", "Left: the frame before. Right: the same frame after the head and the phone were painted green and filled, with a light colour correction. This is the start frame of the shot in the film.")}
+    ${fig("trick-paint", 397, "Three pictures in a row of a man driving a turquoise taxi at night in the rain. The original, with an older driver and a phone mounted by the windscreen; the same picture with a green square over the phone and a loose green shape over the head; the result, with a different man at the same size and the phone gone.", "Left: the frame before. Centre: the picture sent to the model, with the phone and the head painted green. Right: the result, which became the start frame of the shot in the film after a light colour correction.")}
 
     <h3>8.3 One run for several faces, mapped from left to right</h3>
     <p>MiniMax H3 Max Recast on fal replaces people in a video. It accepts one to four reference pictures, one for each person, and maps them to the people in the picture from left to right. The market singer appeared in four clips, with a different face in each. A first run on one whole clip failed: her face was 60–88 pixels tall and the model kept the old one.</p>
@@ -421,7 +422,6 @@ const BODY = `
       "The charge per reference on Seedream 4.5 and Seedream 5 Lite: not checked.",
       "Whether Seedream uses a third reference when OpenArt lists only two: not established.",
       "The warm face on the pier has no likeness score after the Seedream pass.",
-      "Whether a loose green patch gives a normal head when the prompt asks for the face and the background: not tested side by side.",
     ])}
     <p class="small soft">Product and company names belong to their owners and are used here only to identify the tools. See how the film was made on the <a href="/music">music page</a>.</p>
   </div>
