@@ -303,7 +303,7 @@ ${TOC.row}
 
     <h3 id="m4-9">4.9 LTX 2.3, audio-to-video ${N}</h3>
     ${list(["It was the only model that made light events inside the scene from a prompt, but only about 6 of 14 runs were usable. The failures were frozen mouths, a cut to strangers, and a floating light bulb."])}
-    ${fig("ltx-light", 902, "Four frames of a man rapping into a hand-held microphone. In the first two he is in near darkness. In the third a cool light begins to rise behind him. In the fourth the whole frame is flooded with white-blue light and haze.", "Four frames from one two-second take in the first cut of the film (7 November 2026). The flood of light was asked for in the prompt and made by the model inside the scene. The character's face was remade later, so this take is not in the final cut.")}
+    ${fig("ltx-seq", 178, "Five frames in a row of a man rapping into a hand-held microphone. In the first three he is in near darkness. In the fourth a cool light rises behind him. In the fifth the whole frame is flooded with white-blue light and haze.", "Five frames from one two-second take in the first cut of the film (7 November 2026), left to right. The flood of light was asked for in the prompt and made by the model inside the scene. The character's face was remade later, so this take is not in the final cut.").replace('class="fig"', 'class="fig fig-seq"')}
     ${TOP}
   </div>
 </section>
@@ -445,6 +445,7 @@ main.models section .wrap>p.top{margin:22px 0 0;font-size:14px}
 .fig{margin:18px 0 26px}
 .fig a{display:block}
 .fig img{display:block;width:100%;height:auto;border-radius:var(--r);border:1px solid var(--line)}
+@media (max-width:719px){.fig-seq a{overflow-x:auto}.fig-seq img{width:760px;max-width:none}}
 .fig figcaption{margin-top:8px;max-width:688px;font-size:14px;color:var(--ink-soft)}
 .when{font-size:13px;font-weight:400;color:var(--ink-soft);white-space:nowrap}
 .scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
