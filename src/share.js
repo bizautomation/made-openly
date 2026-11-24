@@ -43,6 +43,13 @@ export const MODELS = {
     "Which AI image, video and lip-sync models were used for which task on one music video, what each cost and where each fell short. One project's findings, 7 to 24 November 2026; not benchmarks.",
 };
 
+export const METHODS = {
+  url: `${ORIGIN}/music/methods`,
+  title: "Methods that worked: face edits, checks and prompts from one AI music video | Made Openly",
+  description:
+    "Eight working methods from one AI music video: crop and paste back, green paint, one run for several faces, what a likeness score misses, teeth correction and prompt order. One project's findings; not benchmarks.",
+};
+
 export const PRIVACY = {
   url: `${ORIGIN}/privacy`,
   title: "Privacy: Made Openly",
@@ -50,7 +57,7 @@ export const PRIVACY = {
 };
 
 // The pages search engines may list. Not /manage, /stats.json or any badge or API address.
-const SITEMAP_PAGES = [HOME, PLACES, MUSIC, MODELS, PRIVACY];
+const SITEMAP_PAGES = [HOME, PLACES, MUSIC, MODELS, METHODS, PRIVACY];
 
 const attr = (s) => s.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 

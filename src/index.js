@@ -5,6 +5,7 @@ import { handleManage, handleManageList, handleRemove, handleSendKey, managePage
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
+import { handleMethods } from "./methods.js";
 import { handleModels } from "./models.js";
 import { handlePrivacy } from "./privacy.js";
 import { HOME, headTags, shareImage, sitemap } from "./share.js";
@@ -108,7 +109,8 @@ const SHELL = {
   footer: between('<footer id="privacy">', "</footer>"),
 };
 // The same shell with the header link for this page marked as the current one.
-const shellAt = (path) => ({ ...SHELL, nav: SHELL.nav.replace(`<a href="${path}">`, `<a href="${path}" aria-current="page">`) });
+// current: "page" for the page itself, "true" for a page that sits under that menu item.
+const shellAt = (path, current = "page") => ({ ...SHELL, nav: SHELL.nav.replace(`<a href="${path}">`, `<a href="${path}" aria-current="${current}">`) });
 
 // A reader clicked the badge (SPEC.md 8.3). When the Referer's host is the
 // place's bound host or the host of its declared address, that is a sighting.
@@ -166,6 +168,8 @@ function route(request, env, ctx, url) {
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, shellAt("/places"), CSP);
   if (method === "GET" && (pathname === "/music" || pathname.startsWith("/art/"))) return musicPage(request, env, pathname);
   if (method === "GET" && pathname === "/music/models") return handleModels(shellAt("/music/models"), CSP);
+  // The review's second page sits under the same menu item, marked as the current section.
+  if (method === "GET" && pathname === "/music/methods") return handleMethods(shellAt("/music/models", "true"), CSP);
   if (method === "GET" && pathname === "/privacy") return handlePrivacy(SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
@@ -182,7 +186,7 @@ function route(request, env, ctx, url) {
   return notFound(request);
 }
 
-const PAGES = ["/places", "/manage", "/music", "/music/models", "/privacy"];
+const PAGES = ["/places", "/manage", "/music", "/music/models", "/music/methods", "/privacy"];
 
 // /music and its pictures under /art/ live in a separate, private Worker
 // (madeopenly-music), reached through the MUSIC service binding. Without the
