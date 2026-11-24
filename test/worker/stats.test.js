@@ -98,6 +98,12 @@ describe("/stats.json", () => {
     expect((await res.json()).total_verified).toBe(5);
   });
 
+  it("caches under a versioned key that purging clears", async () => {
+    const { statsCacheKey } = await import("../../src/stats.js");
+    expect(statsCacheKey("https://madeopenly.com").url).toBe("https://madeopenly.com/stats.json?_k=2");
+    expect(statsCacheKey("https://madeopenly.com", "?since=2026-11-01").url).toBe("https://madeopenly.com/stats.json?since=2026-11-01&_k=2");
+  });
+
   it("rejects a bad since date", async () => {
     expect((await call("/stats.json?since=last-week")).status).toBe(400);
   });

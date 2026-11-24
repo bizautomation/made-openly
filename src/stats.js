@@ -9,6 +9,15 @@ const CACHE_SECONDS = 3600;
 const DAY_MS = 86_400_000;
 const LISTED_CAP = 200; // newest first; the /places page has the rest
 
+// The key /stats.json is cached under. Bump KEY_VERSION to drop every cached
+// copy on the next deploy; purgeStats (moderation.js) deletes the plain one.
+const KEY_VERSION = "2";
+export function statsCacheKey(origin, search = "") {
+  const q = new URLSearchParams(search);
+  q.set("_k", KEY_VERSION);
+  return new Request(`${origin}/stats.json?${q}`, { method: "GET" });
+}
+
 const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 const zeroKinds = () => Object.fromEntries(KINDS.map((k) => [k, 0]));
 
@@ -149,7 +158,7 @@ export async function handleStats(request, env, ctx, url) {
     return Response.json({ error: "since must be YYYY-MM-DD" }, { status: 400 });
 
   const useCache = env.STATS_CACHE !== "off";
-  const cacheKey = new Request(url.toString(), { method: "GET" });
+  const cacheKey = statsCacheKey(url.origin, url.search);
   if (useCache) {
     const hit = await caches.default.match(cacheKey);
     if (hit) return hit;
