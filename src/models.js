@@ -58,7 +58,12 @@ const BODY = `
     </aside>
     <p class="small soft">Compiled from the project's model notes (163 findings), its decision log and its run logs. Prices are given in OpenArt credits, or in US dollars as billed by fal or WaveSpeed. Last checked on 24 November 2026; prices on OpenArt were quoted again on that day.</p>
     <p class="small soft">Each model carries one of three assessments. ${R} means proven and used in the film. ${M} means mixed results or not fully tested. ${N} means rejected for this project.</p>
-    <nav class="toc" aria-label="On this page"><ol>
+  </div>
+</section>
+
+<div class="wrap models-grid">
+  <aside class="toc-side">
+    <nav class="toc" aria-label="On this page"><p class="toc-h">On this page</p><ol>
       <li><a href="#quick">Summary of recommendations</a></li>
       <li><a href="#stills">Still-image models</a></li>
       <li><a href="#warm-face">The warm-face method</a></li>
@@ -69,9 +74,8 @@ const BODY = `
       <li><a href="#billing">Prices and billing</a></li>
       <li><a href="#open">Open questions</a></li>
     </ol></nav>
-  </div>
-</section>
-
+  </aside>
+  <div class="models-body">
 <section id="quick">
   <div class="wrap">
     <h2>1. Summary of recommendations</h2>
@@ -330,23 +334,35 @@ const BODY = `
     ])}
     <p class="small soft">Product and company names belong to their owners and are used here only to identify the tools. See how the film was made on the <a href="/music">music page</a>.</p>
   </div>
-</section>`;
+</section>
+  </div>
+</div>`;
 
 const CSS = `
-.models-head{padding:36px 0 8px}
-.models-head h1{margin:0 0 14px;font-size:clamp(28px,4.4vw,38px);line-height:1.2;max-width:760px}
+.models-head{padding:56px 0 32px;border-bottom:0}
+.models-head h1{margin:0 0 14px;font-size:clamp(32px,4.6vw,50px);line-height:1.08;max-width:820px}
 .crumb{margin:0 0 10px;font-size:14px;color:var(--ink-soft)}
 .crumb a{text-decoration:none;font-weight:600}
 .disclaimer{margin:22px 0 18px;padding:16px 20px;max-width:688px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--human);border-radius:8px}
 main.models .disclaimer h2{margin:0 0 6px;padding:0;border:0;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--human-deep)}
 .disclaimer p{margin:0 0 8px;font-size:15px}
 .disclaimer p:last-child{margin:0}
-.toc{margin:22px 0 0;max-width:688px}
-.toc ol{margin:0;padding-left:22px;columns:2 240px;column-gap:32px;font-size:15px}
+.models-grid{display:grid;gap:28px 56px;padding-bottom:56px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.toc-h{margin:0 0 8px;font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink)}
+.toc ol{margin:0;padding-left:22px;font-size:15px}
+main.models .toc li{margin:0;padding:3px 0}
+.toc a{color:var(--ink-soft)}
+.toc a:hover{color:var(--machine-deep)}
+.models-body{min-width:0}
+.models-body .wrap{max-width:none;padding:0}
+@media (min-width:960px){.models-grid{grid-template-columns:248px minmax(0,1fr)}.toc-side{position:sticky;top:calc(var(--bar) + 24px);align-self:start;max-height:calc(100vh - var(--bar) - 48px);overflow:auto}.toc{background:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:2px 0 2px 18px}}
 .toc a{text-decoration:none}
 .toc a:hover{text-decoration:underline}
-.models section,main.models>section{padding:28px 0}
-main.models h2{margin:0 0 16px;font-size:24px;padding-top:20px;border-top:1px solid var(--line)}
+.models-body section{padding:0 0 44px;border-bottom:0}
+.models-body section:last-child{padding-bottom:0}
+main.models h2{margin:0 0 18px;font-size:clamp(24px,2.6vw,30px);padding-top:28px;border-top:1px solid var(--line)}
+.models-body section:first-child h2{padding-top:0;border-top:0}
 main.models h3{margin:30px 0 10px;font-size:18px;line-height:1.35}
 main.models section .wrap>p,main.models section .wrap>ul,main.models section .wrap>ol{max-width:688px}
 main.models li{margin:0 0 6px}
@@ -357,13 +373,12 @@ main.models ul,main.models section ol{padding-left:22px;margin:0 0 14px}
 .st-no{background:#F1F2F4;color:var(--ink)}
 td .st,p .st{margin-left:0}
 .when{font-size:13px;font-weight:400;color:var(--ink-soft);white-space:nowrap}
-.scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.scroll{overflow-x:auto;margin:0 0 8px;border:1px solid var(--line);border-radius:var(--r);background:#fff}
 .scroll table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px;line-height:1.45}
 .scroll th,.scroll td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
 .scroll thead th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);background:var(--paper)}
 .scroll tbody th{font-weight:600;width:26%}
 .scroll tbody tr:last-child th,.scroll tbody tr:last-child td{border-bottom:0}
-html{scroll-padding-top:12px}
 `;
 
 // shell: { head, nav, footer } cut from page.html, as for /places.

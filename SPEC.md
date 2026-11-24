@@ -468,7 +468,7 @@ Optional: `/stats.json?since=YYYY-MM-DD` returns only places first seen (or, for
 
 ## 11. The page
 
-One page, mobile-first, one column on phones. A small jump menu at the top: Labels, Get a badge, Count, Places, FAQ, Music. Contact and GitHub live in the footer (owner, 8 Nov 2026). Sections in order:
+One page, mobile-first, one column on phones. The site header (see Style) stays at the top of the screen. Contact and GitHub live in the footer (owner, 8 Nov 2026). From 860 px the hero puts the three badges beside the headline, Get a badge keeps the preview and the Generate button in view beside the choices, and FAQ and Contact put the heading on the left and the content on the right. Sections in order:
 
 1. **Hero.** One line saying what this is: a badge for things made with AI, worn openly. Below it, the three badges side by side, a **Get a badge** button and a **What the labels mean** link. The half-bot bird mascot can appear here when its art is final.
 2. **Labels.** "Three labels, one question": the deciding question, a scale from all human to all AI with the three labels marked, and a card per label with its badge, meaning and two examples, then the tie-break (section 4.1).
@@ -519,7 +519,13 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 
 ### Style
 
-Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper background, Ink text, Machine teal for buttons and links. No dark mode for the page at launch, no glow effects. Layout (owner, 8 Nov 2026): the menu bar is 1120 px wide, sections 960 px for badges, cards, the counter and pictures; running text (paragraphs, Why, Get a badge, FAQ, Contact, footer, /manage) keeps a 720 px measure.
+Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper background, Ink text, Machine teal for buttons and links. No dark mode for the page at launch, no glow effects. Layout (redesign, 24 Nov 2026, replaces the 8 Nov 2026 widths): the header, every section and the footer share one 1152 px column, so their left edges line up. Running text keeps a 688 px measure inside it.
+
+- **Header.** One bar on every page, fixed to the top of the screen: the mascot mark and "Made Openly", the links, and a **Get a badge** button. The link for the page being read is marked (`aria-current="page"`). Under 860 px the links fold behind a Menu button that works without script; the brand and the button stay visible.
+- **Sections.** Each home section opens with a small teal label over its heading. Sections alternate Paper and a slightly deeper band. Why is one dark teal band with its third line set large.
+- **Count.** The four numbers are tiles. The bars and the weekly line share one card.
+- **Footer.** Four columns from 720 px, two on phones: the brand with the privacy line and the site's own badge, then Badge, Explore and About links. The privacy line stays word for word: "No cookies. We count places, never visitors."
+- **Other pages.** `/places`, `/privacy`, `/manage` and `/music/models` use the same header, footer and heading sizes. `/music/models` keeps its list of sections beside the text from 960 px.
 
 ### 11.6 The `/music/models` page (owner, 24 Nov 2026)
 
@@ -529,7 +535,7 @@ The model fit review: which AI model was used for which task on the "Sing Like a
 - A disclaimer sits above the first section: one person's experience on one project (7–24 November 2026), not benchmarks, check current prices before running anything.
 - Assessments in plain words: Recommended, Mixed results, Not recommended.
 - No real name of the owner, no internal take codes or job IDs, nothing from the character bible. Never linked from crayonraven.com.
-- **Menu.** The site menu is in two groups with a thin divider: on-page links (Labels, Get a badge, Count, FAQ), then pages (Places, Music, Model review). The page carries a "Music / Model review" trail back to `/music`.
+- **Menu.** The site menu is in two groups with a thin divider: on-page links (Labels, Count, FAQ), then pages (Places, Music, Model review). Get a badge is the button at the end of the header. The page carries a "Music / Model review" trail back to `/music`.
 
 ### 11.1 FAQ (seed questions; write plain, short answers)
 

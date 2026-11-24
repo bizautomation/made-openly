@@ -4,7 +4,7 @@ import { call } from "./helpers.js";
 const footerOf = (html) => html.slice(html.indexOf('<footer id="privacy"'), html.indexOf("</footer>") + 9);
 
 describe("privacy (SPEC.md 11.2)", () => {
-  it("every page ends with the same one-line footer", async () => {
+  it("every page ends with the same footer", async () => {
     const footers = [];
     for (const path of ["/", "/places", "/music", "/music/models", "/manage", "/privacy"]) footers.push(footerOf(await (await call(path)).text()));
     expect(new Set(footers).size).toBe(1);
