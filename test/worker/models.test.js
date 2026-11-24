@@ -53,7 +53,7 @@ describe("GET /music/models, the model fit review", () => {
     expect(start).toBeGreaterThan(html.indexOf('<section id="prompts">'));
     const text = html.slice(start, html.indexOf('<section id="billing">'));
     expect(html).toContain('<li><a href="#methods">Methods that worked</a></li>');
-    for (const name of ["trick-crop", "trick-greenface", "trick-strip", "trick-teeth"])
+    for (const name of ["trick-crop", "trick-recast", "trick-strip", "trick-teeth"])
       expect(text).toContain(`src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w"`);
     const imgs = text.match(/<img [^>]*>/g);
     expect(imgs).toHaveLength(4);
