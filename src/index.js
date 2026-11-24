@@ -104,9 +104,11 @@ async function page(request, env, ctx, url) {
 const between = (start, end) => pageHtml.slice(pageHtml.indexOf(start), pageHtml.indexOf(end) + end.length);
 const SHELL = {
   head: pageHtml.slice(0, pageHtml.indexOf("</style>")),
-  nav: between("<nav", "</nav>").replaceAll('href="#', 'href="/#'),
+  nav: between('<header class="site">', "</header>").replaceAll('href="#', 'href="/#'),
   footer: between('<footer id="privacy">', "</footer>"),
 };
+// The same shell with the header link for this page marked as the current one.
+const shellAt = (path) => ({ ...SHELL, nav: SHELL.nav.replace(`<a href="${path}">`, `<a href="${path}" aria-current="page">`) });
 
 // A reader clicked the badge (SPEC.md 8.3). When the Referer's host is the
 // place's bound host or the host of its declared address, that is a sighting.
@@ -161,9 +163,9 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/manage/remove") return handleRemove(request, env, ctx);
   if (method === "POST" && pathname === "/api/manage/list") return handleManageList(request, env, ctx);
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
-  if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
+  if (method === "GET" && pathname === "/places") return handlePlaces(env, url, shellAt("/places"), CSP);
   if (method === "GET" && (pathname === "/music" || pathname.startsWith("/art/"))) return musicPage(request, env, pathname);
-  if (method === "GET" && pathname === "/music/models") return handleModels(SHELL, CSP);
+  if (method === "GET" && pathname === "/music/models") return handleModels(shellAt("/music/models"), CSP);
   if (method === "GET" && pathname === "/privacy") return handlePrivacy(SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
@@ -188,7 +190,7 @@ const PAGES = ["/places", "/manage", "/music", "/music/models", "/privacy"];
 async function musicPage(request, env, pathname) {
   if (!env.MUSIC) return notFound(request);
   try {
-    return pathname === "/music" ? await env.MUSIC.page(SHELL, CSP) : await env.MUSIC.fetch(request);
+    return pathname === "/music" ? await env.MUSIC.page(shellAt("/music"), CSP) : await env.MUSIC.fetch(request);
   } catch {
     return notFound(request);
   }

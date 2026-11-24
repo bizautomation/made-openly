@@ -13,7 +13,7 @@ describe("GET /music/models, the model fit review", () => {
     expect(html.match(/<h1>/g)).toHaveLength(1);
     const nav = html.slice(html.indexOf("<nav"), html.indexOf("</nav>"));
     expect(nav).toContain('<a href="/music">Music</a>');
-    expect(nav).toContain('<a href="/music/models">Model review</a>');
+    expect(nav).toContain('<a href="/music/models" aria-current="page">Model review</a>');
     expect(html).toContain('<p class="crumb"><a href="/music">Music</a>');
   });
 

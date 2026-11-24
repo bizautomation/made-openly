@@ -10,7 +10,9 @@ describe("/music through the MUSIC service binding", () => {
     expect(res.headers.get("Content-Security-Policy")).toContain("frame-src");
     const html = await res.text();
     expect(html).toContain("<h1>stub music</h1>");
-    expect(html).toContain('<a class="brand" href="/#top">MADE OPENLY</a>');
+    expect(html).toContain('<a class="brand" href="/#top"><img src="/favicon.svg" width="26" height="26" alt="">Made Openly</a>');
+    // The header marks Music as the page the reader is on.
+    expect(html).toContain('<a href="/music" aria-current="page">Music</a>');
     expect(html).toContain('<a href="/privacy">Privacy</a>');
   });
 

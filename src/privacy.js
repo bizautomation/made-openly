@@ -1,5 +1,5 @@
 // GET /privacy (SPEC.md 11.2): the full privacy note. Every page ends with
-// the same one-line footer that links here.
+// the same footer, which links here.
 import { PRIVACY, headTags } from "./share.js";
 
 const NOTE = `
@@ -15,8 +15,8 @@ const NOTE = `
     <p>Run by Biz-Automation Co., Ltd., Bangkok, Thailand.</p>`;
 
 const CSS = `
-.privacy{padding:40px 0 56px}
-.privacy h1{margin:0 0 18px;font-size:32px;line-height:1.2}
+.privacy{padding:56px 0 80px}
+.privacy h1{margin:0 0 24px;font-size:clamp(32px,4.6vw,50px);line-height:1.08}
 `;
 
 // shell: { head, nav, footer } cut from page.html, as for /places.

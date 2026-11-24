@@ -170,8 +170,8 @@ export async function handleSendKey(request, env) {
 }
 
 const MANAGE_CSS = `
-.manage{padding:40px 0 56px}
-.manage h1{margin:0 0 6px;font-size:32px;line-height:1.2}
+.manage{padding:56px 0 80px}
+.manage h1{margin:0 0 10px;font-size:clamp(32px,4.6vw,50px);line-height:1.08}
 .manage label{display:block;font-weight:600;margin:16px 0 6px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:20px 0 0}
 .panel dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:0 0 16px}

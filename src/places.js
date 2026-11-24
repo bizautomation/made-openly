@@ -30,14 +30,16 @@ export async function listPlaces(db, { label = null, kind = null, page = 1 } = {
 }
 
 const PLACES_CSS = `
-.places-head{padding:40px 0 8px}
-.places-head h1{margin:0 0 6px;font-size:32px;line-height:1.2}
+.places-head{padding:56px 0 16px;border-bottom:0}
+.places-head h1{margin:0 0 10px;font-size:clamp(32px,4.6vw,50px);line-height:1.08}
+.places-head .soft{font-size:19px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:14px;color:var(--ink);text-decoration:none}
 .chip:hover{border-color:var(--machine);color:var(--machine)}
 .chip[aria-current=true]{background:var(--machine-tint);border-color:var(--machine);color:var(--machine-deep);font-weight:600}
-.rows{list-style:none;margin:24px 0 0;padding:0;border-top:1px solid var(--line)}
-.rows li{display:grid;grid-template-columns:4px 1fr auto;gap:4px 14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.rows{list-style:none;margin:28px 0 0;padding:0 20px;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.rows li{display:grid;grid-template-columns:4px 1fr auto;gap:4px 14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
+.rows li:last-child{border-bottom:0}
 .rows .swatch{grid-row:span 2;align-self:stretch;border-radius:2px}
 .rows .name{font-weight:600;overflow-wrap:anywhere;text-decoration:none;color:var(--ink)}
 .rows .name:hover{color:var(--machine)}
@@ -50,7 +52,7 @@ const PLACES_CSS = `
 .more button{position:absolute;right:0;top:34px;z-index:1;white-space:nowrap;font:inherit;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;color:var(--alert);cursor:pointer}
 .empty{margin:24px 0 0}
 .pager{margin:24px 0 0}
-.ask{padding:32px 0 48px}
+.ask{padding:24px 0 72px;border-bottom:1px solid var(--line)}
 `;
 
 // shell: { head, nav, footer } cut from page.html so both pages share one look.
@@ -94,6 +96,7 @@ ${shell.nav}
 <main id="top">
 <section class="places-head">
   <div class="wrap">
+    <p class="eyebrow">The public list</p>
     <h1>Places wearing Made Openly</h1>
     <p class="soft">Active places whose makers asked to be named. ${esc(count)}.</p>
     <div class="chips" role="group" aria-label="Filter by label">${labelChips}</div>
