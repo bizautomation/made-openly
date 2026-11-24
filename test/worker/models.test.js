@@ -53,7 +53,7 @@ describe("GET /music/models, the model fit review", () => {
     expect(start).toBeGreaterThan(html.indexOf('<section id="prompts">'));
     const text = html.slice(start, html.indexOf('<section id="billing">'));
     expect(html).toContain('<li><a href="#methods">Methods that worked</a></li>');
-    for (const name of ["trick-crop", "trick-recast", "trick-strip", "trick-teeth"])
+    for (const name of ["trick-crop", "trick-paint", "trick-strip", "trick-teeth"])
       expect(text).toContain(`src="/art/tricks/${name}-800.jpg" srcset="/art/tricks/${name}-800.jpg 800w, /art/tricks/${name}-1600.jpg 1600w"`);
     const imgs = text.match(/<img [^>]*>/g);
     expect(imgs).toHaveLength(4);
@@ -61,7 +61,7 @@ describe("GET /music/models, the model fit review", () => {
       expect(img).toMatch(/ width="1600" height="\d+" alt="[^"]{40,}" loading="lazy"/);
     }
     expect(text).toContain("“Four people, left to right. Replace person 1 with reference 1");
-    expect(text).toContain("it was not tested side by side");
+    expect(text).toContain("the head must not be bigger than the green area");
   });
 
   it("redirects a trailing slash to the page", async () => {
