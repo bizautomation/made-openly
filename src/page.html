@@ -26,6 +26,8 @@ nav .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-to
 nav .brand{font-weight:700;letter-spacing:.08em;font-size:13px;color:var(--machine);text-decoration:none;margin-right:auto}
 nav a:not(.brand){font-size:15px;text-decoration:none;color:var(--ink)}
 nav a:not(.brand):hover{color:var(--machine)}
+nav .sep{width:1px;height:16px;background:var(--line)}
+@media (max-width:640px){nav .sep{display:none}}
 section{padding:56px 0;border-bottom:1px solid var(--line)}
 h1{font-size:40px;line-height:1.15;margin:0 0 14px;letter-spacing:-.02em}
 h2{font-size:26px;line-height:1.25;margin:0 0 20px;letter-spacing:-.01em}
@@ -165,9 +167,11 @@ footer p{margin:0}
     <a href="#labels">Labels</a>
     <a href="#get">Get a badge</a>
     <a href="#count">Count</a>
-    <a href="/places">Places</a>
     <a href="#faq">FAQ</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="/places">Places</a>
     <a href="/music">Music</a>
+    <a href="/music/models">Model review</a>
   </div>
 </nav>
 

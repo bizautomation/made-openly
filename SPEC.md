@@ -521,6 +521,16 @@ Links to the site show a card on LinkedIn, X, Facebook, Slack and LINE. Static t
 
 Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper background, Ink text, Machine teal for buttons and links. No dark mode for the page at launch, no glow effects. Layout (owner, 8 Nov 2026): the menu bar is 1120 px wide, sections 960 px for badges, cards, the counter and pictures; running text (paragraphs, Why, Get a badge, FAQ, Contact, footer, /manage) keeps a 720 px measure.
 
+### 11.6 The `/music/models` page (owner, 24 Nov 2026)
+
+The model fit review: which AI model was used for which task on the "Sing Like a Human" music video, what each cost and where each fell short. Source: Muninn artifact `2d1c4c66`, rewritten in formal language with every number, price and date kept.
+
+- Lives in this Worker (`src/models.js`), not the music Worker. Listed in the sitemap. No robots.txt change: the zone's managed file already allows it.
+- A disclaimer sits above the first section: one person's experience on one project (7–24 November 2026), not benchmarks, check current prices before running anything.
+- Assessments in plain words: Recommended, Mixed results, Not recommended.
+- No real name of the owner, no internal take codes or job IDs, nothing from the character bible. Never linked from crayonraven.com.
+- **Menu.** The site menu is in two groups with a thin divider: on-page links (Labels, Get a badge, Count, FAQ), then pages (Places, Music, Model review). The page carries a "Music / Model review" trail back to `/music`.
+
 ### 11.1 FAQ (seed questions; write plain, short answers)
 
 - What does each badge mean, and who decides which one fits? (You decide. Section 4.1 meanings.)

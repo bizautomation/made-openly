@@ -5,6 +5,7 @@ import { handleManage, handleManageList, handleRemove, handleSendKey, managePage
 import { day, recordDay } from "./sighting.js";
 import { handleStats } from "./stats.js";
 import { handlePlaces } from "./places.js";
+import { handleModels } from "./models.js";
 import { handlePrivacy } from "./privacy.js";
 import { HOME, headTags, shareImage, sitemap } from "./share.js";
 import { recordTokenless } from "./tokenless.js";
@@ -162,6 +163,7 @@ function route(request, env, ctx, url) {
   if (method === "POST" && pathname === "/api/send-key") return handleSendKey(request, env);
   if (method === "GET" && pathname === "/places") return handlePlaces(env, url, SHELL, CSP);
   if (method === "GET" && (pathname === "/music" || pathname.startsWith("/art/"))) return musicPage(request, env, pathname);
+  if (method === "GET" && pathname === "/music/models") return handleModels(SHELL, CSP);
   if (method === "GET" && pathname === "/privacy") return handlePrivacy(SHELL, CSP);
   if (method === "GET" && pathname === "/badge.svg") return plainBadge(request, env, url);
   if (method === "GET" && pathname === "/og.png") return shareImage(env);
@@ -178,7 +180,7 @@ function route(request, env, ctx, url) {
   return notFound(request);
 }
 
-const PAGES = ["/places", "/manage", "/music", "/privacy"];
+const PAGES = ["/places", "/manage", "/music", "/music/models", "/privacy"];
 
 // /music and its pictures under /art/ live in a separate, private Worker
 // (madeopenly-music), reached through the MUSIC service binding. Without the
