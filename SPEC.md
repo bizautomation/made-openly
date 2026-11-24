@@ -484,7 +484,7 @@ One page, mobile-first, one column on phones. The site header (see Style) stays 
 5. **Counter.** Section 10.
 6. **FAQ.** Section 11.1.
 7. **Contact.** Name, email, message, Turnstile. Stored in `messages` and forwarded to the owner's inbox.
-8. **Footer.** The same on every page (layout in Style): the line "No cookies. We count places, never visitors.", the site's own badge, links in three groups (Badge, Explore, About) and © Biz-Automation Co., Ltd. The full privacy note (section 11.2) lives at `/privacy` (owner, 8 Nov 2026).
+8. **Footer.** The same on every page (layout in Style): the line "No cookies. We count places, never visitors.", the site's own badge with the Crayon Raven logo beside it (linked to crayonraven.com), links in three groups (Badge, Explore, About; About ends with GitHub and Crayon Raven) and © Biz-Automation Co., Ltd. The full privacy note (section 11.2) lives at `/privacy` (owner, 8 Nov 2026).
 
 ### 11.3 The `/places` page (owner, 1 Nov 2026)
 
@@ -524,7 +524,7 @@ Clean, formal, standard; not techy. Font: Inter. Lots of white space. Paper back
 - **Header.** One bar on every page, fixed to the top of the screen: the mascot mark and "Made Openly", the links, and a **Get a badge** button. The link for the page being read is marked (`aria-current="page"`). Under 860 px the links fold behind a Menu button that works without script; the brand and the button stay visible.
 - **Sections.** Each home section opens with a small teal label over its heading. Sections alternate Paper and a slightly deeper band. Why is one dark teal band with its third line set large.
 - **Count.** The four numbers are tiles. The bars and the weekly line share one card.
-- **Footer.** Four columns from 720 px, two on phones: the brand with the privacy line and the site's own badge, then Badge, Explore and About links. The privacy line stays word for word: "No cookies. We count places, never visitors."
+- **Footer.** Four columns from 720 px, two on phones: the brand with the privacy line, the site's own badge and the Crayon Raven logo (light version, `public/crayon-raven-logo.png`, from the band's approved logo on white; owner, 24 Nov 2026), then Badge, Explore and About links. About ends with GitHub and Crayon Raven, both linked out. The privacy line stays word for word: "No cookies. We count places, never visitors."
 - **Other pages.** `/places`, `/privacy`, `/manage` and `/music/models` use the same header, footer and heading sizes. `/music/models` keeps its list of sections beside the text from 960 px.
 
 ### 11.6 The `/music/models` page (owner, 24 Nov 2026)
